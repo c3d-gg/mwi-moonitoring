@@ -7,6 +7,18 @@ High-performance **READ-ONLY** WebSocket event library for Milky Way Idle addon 
 > Any automation that sends commands or modifies game state violates the game's Terms of Service.  
 > This library is designed for data collection, monitoring, and alerting purposes only.
 
+## What Can You Build?
+
+With this **READ-ONLY** library, developers can create:
+
+- 📊 **Statistics Dashboards** - Track XP rates, gold earned, items collected
+- 🔔 **Alert Systems** - Notify when inventory is full, action completes, or rare drops occur  
+- 📈 **Market Analyzers** - Monitor item prices and market trends
+- 🏆 **Achievement Trackers** - Track progress toward game achievements
+- 📝 **Activity Loggers** - Record gameplay sessions and analyze patterns
+- 🎯 **Efficiency Calculators** - Calculate optimal skill training paths
+- 🗺️ **Progress Visualizers** - Create visual representations of character progress
+
 ## Features
 
 - 🚀 **High Performance** - Event batching, pre-filtering, and lazy parsing
@@ -19,36 +31,41 @@ High-performance **READ-ONLY** WebSocket event library for Milky Way Idle addon 
 
 ## Installation
 
-### Method 1: CDN @require (Recommended)
-
-Add this line to your userscript header:
+### Quick Setup (Choose One)
 
 ```javascript
-// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js
+// ==UserScript==
+// @name         Your MWI Addon
+// @match        https://www.milkywayidle.com/*
+
+// Option 1: Auto-updating (for development)
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
+
+// Option 2: With security verification (for production)
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=
+
+// Option 3: Specific version (most stable)
+// @require      https://dns.c3d.gg/mwi-moonitoring-library-v0.2.0.min.js
+// ==/UserScript==
 ```
 
-#### With Subresource Integrity (SRI)
+### Get Current Version & Hashes
 
-For enhanced security, use SRI hashes to ensure the library hasn't been tampered with:
+📦 **Check current version**: https://dns.c3d.gg/sri.json  
+📋 **Copy @require lines**: Ready-to-use in the sri.json file  
+🔐 **SRI Documentation**: [SRI-HASHES.md](./SRI-HASHES.md)
 
-```javascript
-// Minified version with SHA-256 (recommended)
-// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=UNkrwKqNKIGtrWt74QN6ajqwxCMYtO4rfNEP2ZRj/NI=
+### Available Files
 
-// Full version with SHA-256
-// @require https://dns.c3d.gg/mwi-moonitoring-library.js#sha256=EkVUApZY1eawnkoSvS1TDFGPNnGrjIMx4aovaAfYdVs=
+| File | Description | When to Use |
+|------|-------------|-------------|
+| `mwi-moonitoring-library.min.js` | Minified, latest | Production |
+| `mwi-moonitoring-library.js` | Full source, latest | Debugging |
+| `mwi-moonitoring-library-v0.2.0.min.js` | Version locked | Stable deployment |
 
-// Alternative: MD5 hash (wider compatibility)
-// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#md5=/20IfavMcqcXcWLF0Jd78g==
-```
+### Local Development
 
-Available CDN options:
-- `https://dns.c3d.gg/mwi-moonitoring-library.js` - Full version
-- `https://dns.c3d.gg/mwi-moonitoring-library.min.js` - Minified (recommended)
-- `https://dns.c3d.gg/mwi-moonitoring-library-v0.1.0.min.js` - Specific version (stable)
-
-### Method 2: Local Development
-
+For local testing:
 ```javascript
 // @require file:///path/to/mwi-moonitoring-library.js
 ```

@@ -2,25 +2,55 @@
 
 This document contains the SRI hashes for all versions of the MWI-Moonitoring library. Use these hashes with Tampermonkey's `@require` directive to ensure the library hasn't been tampered with.
 
-## Current Version (v0.1.0)
+## Current Version (v0.2.0)
 
-### Production (Minified)
+### Production (Minified) - Recommended
 ```javascript
-// SHA-256 (Recommended)
-// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=UNkrwKqNKIGtrWt74QN6ajqwxCMYtO4rfNEP2ZRj/NI=
+// Option 1: Auto-updating (no hash)
+// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js
 
-// MD5 (Fallback)
-// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#md5=/20IfavMcqcXcWLF0Jd78g==
+// Option 2: Locked to v0.2.0 with SRI hash
+// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=
+
+// Option 3: Versioned URL with SRI hash (most secure)
+// @require https://dns.c3d.gg/mwi-moonitoring-library-v0.2.0.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=
+
+// Alternative: MD5 hash (less secure but wider compatibility)
+// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#md5=77fcf697fde88716b1590c7f9e60accb
+
+// Alternative: Multiple hashes (Tampermonkey uses the last supported)
+// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#md5=77fcf697fde88716b1590c7f9e60accb,sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=
 ```
 
 ### Development (Full)
 ```javascript
-// SHA-256 (Recommended)
-// @require https://dns.c3d.gg/mwi-moonitoring-library.js#sha256=EkVUApZY1eawnkoSvS1TDFGPNnGrjIMx4aovaAfYdVs=
+// Option 1: Auto-updating (no hash)
+// @require https://dns.c3d.gg/mwi-moonitoring-library.js
 
-// MD5 (Fallback)
-// @require https://dns.c3d.gg/mwi-moonitoring-library.js#md5=mg7Wy457oqewVS4zNoLDEQ==
+// Option 2: Locked to v0.2.0 with SRI hash
+// @require https://dns.c3d.gg/mwi-moonitoring-library.js#sha256=96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k=
+
+// Alternative: MD5 hash
+// @require https://dns.c3d.gg/mwi-moonitoring-library.js#md5=f341448d0321b5a2475e581e8142226c
 ```
+
+## When to Use Which Option
+
+### Use Auto-updating (no hash)
+- During development
+- When you want automatic bug fixes
+- For personal scripts where you trust the CDN
+
+### Use SRI Hash
+- For production deployment
+- When distributing to other users
+- When security is critical
+- To prevent unexpected breaking changes
+
+### Use Versioned URL with Hash
+- For maximum security and stability
+- When you need a specific tested version
+- For critical production scripts
 
 ## How SRI Works
 
@@ -39,18 +69,34 @@ Tampermonkey supports SRI through the `@require` directive:
 
 ```javascript
 // @require <url>#<algorithm>=<base64-hash>
+// @require <url>#<algorithm>-<hex-hash>
 ```
 
 Supported algorithms:
 - `sha256` - SHA-256 hash (recommended)
 - `md5` - MD5 hash (wider compatibility but less secure)
-- `sha384`, `sha512` - Depends on browser support
+- `sha384`, `sha512` - Depends on browser's `window.crypto` support
 
 ## Generating Hashes
 
 To generate SRI hashes for new versions:
 
-### Using OpenSSL (Linux/Mac/WSL)
+### Using Linux/Mac/WSL Commands
+```bash
+# SHA-256 (hex)
+sha256sum mwi-moonitoring-library.min.js
+
+# SHA-256 (base64 for SRI)
+sha256sum mwi-moonitoring-library.min.js | cut -d' ' -f1 | xxd -r -p | base64
+
+# MD5 (hex)
+md5sum mwi-moonitoring-library.min.js
+
+# MD5 (base64)
+md5sum mwi-moonitoring-library.min.js | cut -d' ' -f1 | xxd -r -p | base64
+```
+
+### Using OpenSSL
 ```bash
 # SHA-256
 openssl dgst -sha256 -binary file.js | openssl base64 -A
@@ -62,10 +108,12 @@ openssl dgst -md5 -binary file.js | openssl base64 -A
 ### Using PowerShell (Windows)
 ```powershell
 # SHA-256
-[Convert]::ToBase64String((Get-FileHash -Algorithm SHA256 -Path "file.js").Hash)
+$hash = Get-FileHash -Algorithm SHA256 -Path "file.js"
+[Convert]::ToBase64String([byte[]]::new($hash.Hash.Length/2))
 
 # MD5
-[Convert]::ToBase64String((Get-FileHash -Algorithm MD5 -Path "file.js").Hash)
+$hash = Get-FileHash -Algorithm MD5 -Path "file.js"
+[Convert]::ToBase64String([byte[]]::new($hash.Hash.Length/2))
 ```
 
 ### Using Online Tools
@@ -74,50 +122,88 @@ openssl dgst -md5 -binary file.js | openssl base64 -A
 
 ## Version History
 
-### v0.1.0 (Current)
-| File | SHA-256 | MD5 |
-|------|---------|-----|
+### v0.2.0 (Current) - 2025-01-14
+| File | SHA-256 (Base64) | SHA-256 (Hex) | MD5 (Hex) |
+|------|------------------|---------------|-----------|
+| mwi-moonitoring-library.min.js | `BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=` | `050ac00e8dc9dd42e79c06b54a64fc98eff3b7f09da49e61e885ad35c7e96f73` | `77fcf697fde88716b1590c7f9e60accb` |
+| mwi-moonitoring-library.js | `96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k=` | `f7aa32e9c21f3c997958d4b4e069f98c8097f3593674f2ed11e110bc91bebb89` | `f341448d0321b5a2475e581e8142226c` |
+
+### v0.1.0 - 2025-01-13
+| File | SHA-256 (Base64) | MD5 (Base64) |
+|------|------------------|--------------|
 | mwi-moonitoring-library.min.js | `UNkrwKqNKIGtrWt74QN6ajqwxCMYtO4rfNEP2ZRj/NI=` | `/20IfavMcqcXcWLF0Jd78g==` |
 | mwi-moonitoring-library.js | `EkVUApZY1eawnkoSvS1TDFGPNnGrjIMx4aovaAfYdVs=` | `mg7Wy457oqewVS4zNoLDEQ==` |
 
 ## Best Practices
 
-1. **Always use SRI** for production userscripts to ensure security
-2. **Use SHA-256** when possible (more secure than MD5)
-3. **Update hashes** whenever the library is updated
-4. **Test with SRI** before deploying to ensure hashes are correct
-5. **Document hashes** for each version for user reference
+1. **For Development**: Use no hash for easier testing and updates
+2. **For Production**: Always use SRI hashes for security
+3. **Use SHA-256**: More secure than MD5
+4. **Version URLs**: Consider using versioned URLs (`-v0.2.0`) for stability
+5. **Update Regularly**: Check for security updates but test before updating
+6. **Document Changes**: Keep track of which version your script uses
 
 ## Troubleshooting
 
 If you get an integrity check failure:
 
-1. **Verify the hash** is correct for your version
-2. **Check the CDN** hasn't cached an old version
-3. **Try the MD5 hash** if SHA-256 isn't supported
-4. **Remove SRI temporarily** to test if it's the issue
-5. **Check browser console** for specific error messages
+1. **Clear Tampermonkey cache**: Settings → Clean caches
+2. **Verify the hash**: Make sure you're using the correct hash for your version
+3. **Check CDN status**: The CDN might be serving a cached version
+4. **Try without hash**: Temporarily remove the hash to identify if it's the issue
+5. **Check console**: Browser console will show specific SRI errors
+6. **Use versioned URL**: Try the versioned URL like `mwi-moonitoring-library-v0.2.0.min.js`
 
 ## Example Usage
 
+### Development Script (Auto-updating)
 ```javascript
 // ==UserScript==
-// @name         My MWI Addon
+// @name         My MWI Dev Addon
 // @version      1.0.0
 // @match        https://www.milkywayidle.com/*
-// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=UNkrwKqNKIGtrWt74QN6ajqwxCMYtO4rfNEP2ZRj/NI=
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
     
-    // Access the library securely
-    const MWIWebSocket = window.MWIWebSocket;
-    
-    // Your code here
-    MWIWebSocket.on('init_character_data', (data) => {
+    // Library auto-updates with CDN
+    MWIWebSocket.on('init_character_data', (eventType, data) => {
         console.log('Character initialized:', data);
     });
 })();
 ```
+
+### Production Script (Locked Version)
+```javascript
+// ==UserScript==
+// @name         My MWI Production Addon
+// @version      1.0.0
+// @match        https://www.milkywayidle.com/*
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    
+    // Library locked to v0.2.0 with SRI verification
+    MWIWebSocket.on('init_character_data', (eventType, data) => {
+        console.log('Character initialized:', data);
+    });
+})();
+```
+
+## Security Notes
+
+1. **HTTPS Only**: Always use HTTPS URLs for the CDN
+2. **Verify Hashes**: Double-check hashes when updating
+3. **Monitor Changes**: Be aware of library updates
+4. **Test Updates**: Test new versions before updating production scripts
+5. **Report Issues**: Report any security concerns to the repository
+
+---
+
+For more information, see the [Tampermonkey documentation on Subresource Integrity](https://www.tampermonkey.net/documentation.php#api:@resource).

@@ -1,0 +1,43 @@
+{
+  "version": "0.2.0",
+  "updated": "2025-01-14T00:00:00Z",
+  "library": {
+    "minified": {
+      "url": "https://dns.c3d.gg/mwi-moonitoring-library.min.js",
+      "size": 21588,
+      "hashes": {
+        "sha256": "BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=",
+        "sha256_hex": "050ac00e8dc9dd42e79c06b54a64fc98eff3b7f09da49e61e885ad35c7e96f73",
+        "md5": "77fcf697fde88716b1590c7f9e60accb"
+      },
+      "require": {
+        "latest": "// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js",
+        "with_sha256": "// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=",
+        "with_md5": "// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#md5=77fcf697fde88716b1590c7f9e60accb",
+        "versioned": "// @require https://dns.c3d.gg/mwi-moonitoring-library-v0.2.0.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M="
+      }
+    },
+    "full": {
+      "url": "https://dns.c3d.gg/mwi-moonitoring-library.js",
+      "size": 65789,
+      "hashes": {
+        "sha256": "96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k=",
+        "sha256_hex": "f7aa32e9c21f3c997958d4b4e069f98c8097f3593674f2ed11e110bc91bebb89",
+        "md5": "f341448d0321b5a2475e581e8142226c"
+      },
+      "require": {
+        "latest": "// @require https://dns.c3d.gg/mwi-moonitoring-library.js",
+        "with_sha256": "// @require https://dns.c3d.gg/mwi-moonitoring-library.js#sha256=96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k=",
+        "with_md5": "// @require https://dns.c3d.gg/mwi-moonitoring-library.js#md5=f341448d0321b5a2475e581e8142226c",
+        "versioned": "// @require https://dns.c3d.gg/mwi-moonitoring-library-v0.2.0.js#sha256=96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k="
+      }
+    }
+  },
+  "recommendations": {
+    "development": "Use 'latest' for auto-updates during development",
+    "production": "Use 'with_sha256' for security in production",
+    "stable": "Use 'versioned' for maximum stability"
+  },
+  "api_docs": "https://github.com/mathewcst/mwi-moonitoring#api-documentation",
+  "examples": "https://github.com/mathewcst/mwi-moonitoring/tree/main/examples"
+}
