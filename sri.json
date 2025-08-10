@@ -3,7 +3,7 @@
   "updated": "2025-01-14T00:00:00Z",
   "library": {
     "minified": {
-      "url": "https://dns.c3d.gg/mwi-moonitoring-library.min.js",
+      "url": "https://cdn.c3d.gg/mwi-moonitoring-library.min.js",
       "size": 21588,
       "hashes": {
         "sha256": "BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=",
@@ -11,14 +11,14 @@
         "md5": "77fcf697fde88716b1590c7f9e60accb"
       },
       "require": {
-        "latest": "// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js",
-        "with_sha256": "// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=",
-        "with_md5": "// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#md5=77fcf697fde88716b1590c7f9e60accb",
-        "versioned": "// @require https://dns.c3d.gg/mwi-moonitoring-library-v0.2.0.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M="
+        "latest": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js",
+        "with_sha256": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=",
+        "with_md5": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js#md5=77fcf697fde88716b1590c7f9e60accb",
+        "versioned": "// @require https://cdn.c3d.gg/mwi-moonitoring-library-v0.2.0.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M="
       }
     },
     "full": {
-      "url": "https://dns.c3d.gg/mwi-moonitoring-library.js",
+      "url": "https://cdn.c3d.gg/mwi-moonitoring-library.js",
       "size": 65789,
       "hashes": {
         "sha256": "96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k=",
@@ -26,10 +26,10 @@
         "md5": "f341448d0321b5a2475e581e8142226c"
       },
       "require": {
-        "latest": "// @require https://dns.c3d.gg/mwi-moonitoring-library.js",
-        "with_sha256": "// @require https://dns.c3d.gg/mwi-moonitoring-library.js#sha256=96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k=",
-        "with_md5": "// @require https://dns.c3d.gg/mwi-moonitoring-library.js#md5=f341448d0321b5a2475e581e8142226c",
-        "versioned": "// @require https://dns.c3d.gg/mwi-moonitoring-library-v0.2.0.js#sha256=96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k="
+        "latest": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.js",
+        "with_sha256": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.js#sha256=96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k=",
+        "with_md5": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.js#md5=f341448d0321b5a2475e581e8142226c",
+        "versioned": "// @require https://cdn.c3d.gg/mwi-moonitoring-library-v0.2.0.js#sha256=96oy6cIfPJl5WNS04Gn5jICX81k2dPLtEeEQvJG+u4k="
       }
     }
   },

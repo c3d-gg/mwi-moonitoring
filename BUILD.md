@@ -121,9 +121,9 @@ Once pushed to GitHub:
 1. **GitHub Action** automatically deploys to CDN
 2. **Check deployment** at [GitHub Actions](https://github.com/mathewcst/mwi-moonitoring/actions)
 3. **Verify CDN files**:
-   - https://dns.c3d.gg/mwi-moonitoring-library.min.js
-   - https://dns.c3d.gg/sri.json
-   - https://dns.c3d.gg/manifest.json
+   - https://cdn.c3d.gg/mwi-moonitoring-library.min.js
+   - https://cdn.c3d.gg/sri.json
+   - https://cdn.c3d.gg/manifest.json
 
 ## Troubleshooting
 

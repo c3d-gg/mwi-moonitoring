@@ -329,12 +329,12 @@ create_commit_and_tag() {
 - mwi-moonitoring.d.ts (TypeScript definitions)
 
 ## CDN URLs
-- Latest: https://dns.c3d.gg/mwi-moonitoring-library.min.js
-- Versioned: https://dns.c3d.gg/mwi-moonitoring-library-v$new_version.min.js
-- SRI Info: https://dns.c3d.gg/sri.json
+- Latest: https://cdn.c3d.gg/mwi-moonitoring-library.min.js
+- Versioned: https://cdn.c3d.gg/mwi-moonitoring-library-v$new_version.min.js
+- SRI Info: https://cdn.c3d.gg/sri.json
 
 ## Installation
-Check https://dns.c3d.gg/sri.json for ready-to-use @require lines with SRI hashes."
+Check https://cdn.c3d.gg/sri.json for ready-to-use @require lines with SRI hashes."
     
     print_success "Tag v$new_version created"
 }

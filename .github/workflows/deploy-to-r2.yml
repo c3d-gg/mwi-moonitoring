@@ -104,7 +104,7 @@ jobs:
             "updated": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
             "library": {
               "minified": {
-                "url": "https://dns.c3d.gg/mwi-moonitoring-library.min.js",
+                "url": "https://cdn.c3d.gg/mwi-moonitoring-library.min.js",
                 "size": ${SIZE_MIN},
                 "hashes": {
                   "sha256": "${SHA256_MIN_B64}",
@@ -112,14 +112,14 @@ jobs:
                   "md5": "${MD5_MIN}"
                 },
                 "require": {
-                  "latest": "// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js",
-                  "with_sha256": "// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=${SHA256_MIN_B64}",
-                  "with_md5": "// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#md5=${MD5_MIN}",
-                  "versioned": "// @require https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js#sha256=${SHA256_MIN_B64}"
+                  "latest": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js",
+                  "with_sha256": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js#sha256=${SHA256_MIN_B64}",
+                  "with_md5": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js#md5=${MD5_MIN}",
+                  "versioned": "// @require https://cdn.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js#sha256=${SHA256_MIN_B64}"
                 }
               },
               "full": {
-                "url": "https://dns.c3d.gg/mwi-moonitoring-library.js",
+                "url": "https://cdn.c3d.gg/mwi-moonitoring-library.js",
                 "size": ${SIZE_FULL},
                 "hashes": {
                   "sha256": "${SHA256_FULL_B64}",
@@ -127,10 +127,10 @@ jobs:
                   "md5": "${MD5_FULL}"
                 },
                 "require": {
-                  "latest": "// @require https://dns.c3d.gg/mwi-moonitoring-library.js",
-                  "with_sha256": "// @require https://dns.c3d.gg/mwi-moonitoring-library.js#sha256=${SHA256_FULL_B64}",
-                  "with_md5": "// @require https://dns.c3d.gg/mwi-moonitoring-library.js#md5=${MD5_FULL}",
-                  "versioned": "// @require https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.js#sha256=${SHA256_FULL_B64}"
+                  "latest": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.js",
+                  "with_sha256": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.js#sha256=${SHA256_FULL_B64}",
+                  "with_md5": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.js#md5=${MD5_FULL}",
+                  "versioned": "// @require https://cdn.c3d.gg/mwi-moonitoring-library-v${VERSION}.js#sha256=${SHA256_FULL_B64}"
                 }
               }
             },
@@ -165,9 +165,9 @@ jobs:
               }
             },
             "cdn": {
-              "base": "https://dns.c3d.gg",
-              "recommended": "https://dns.c3d.gg/mwi-moonitoring-library.min.js",
-              "stable": "https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js"
+              "base": "https://cdn.c3d.gg",
+              "recommended": "https://cdn.c3d.gg/mwi-moonitoring-library.min.js",
+              "stable": "https://cdn.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js"
             }
           }
           EOF
@@ -271,29 +271,29 @@ jobs:
             
             **Recommended (minified, latest):**
             ```
-            https://dns.c3d.gg/mwi-moonitoring-library.min.js
+            https://cdn.c3d.gg/mwi-moonitoring-library.min.js
             ```
             
             **Stable (minified, versioned):**
             ```
-            https://dns.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
+            https://cdn.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
             ```
             
             **TypeScript definitions:**
             ```
-            https://dns.c3d.gg/mwi-moonitoring.d.ts
+            https://cdn.c3d.gg/mwi-moonitoring.d.ts
             ```
             
             ### Usage
             
             Add this to your userscript header:
             ```javascript
-            // @require https://dns.c3d.gg/mwi-moonitoring-library.min.js
+            // @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js
             ```
             
             Or for a specific version:
             ```javascript
-            // @require https://dns.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
+            // @require https://cdn.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
             ```
             
             ### Changes
@@ -315,21 +315,21 @@ jobs:
           
           ## CDN Usage
           
-          The library is available via Cloudflare R2 CDN at \`dns.c3d.gg\`.
+          The library is available via Cloudflare R2 CDN at \`cdn.c3d.gg\`.
           
           ### Latest Version (auto-updates)
           \`\`\`javascript
-          // @require https://dns.c3d.gg/mwi-moonitoring-library.min.js
+          // @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js
           \`\`\`
           
           ### Specific Version (stable)
           \`\`\`javascript
-          // @require https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js
+          // @require https://cdn.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js
           \`\`\`
           
           ### TypeScript Definitions
           \`\`\`typescript
-          /// <reference path="https://dns.c3d.gg/mwi-moonitoring.d.ts" />
+          /// <reference path="https://cdn.c3d.gg/mwi-moonitoring.d.ts" />
           \`\`\`
           
           ### Available Files
@@ -360,11 +360,11 @@ jobs:
             -H "Content-Type: application/json" \
             --data '{
               "files": [
-                "https://dns.c3d.gg/mwi-moonitoring-library.js",
-                "https://dns.c3d.gg/mwi-moonitoring-library.min.js",
-                "https://dns.c3d.gg/mwi-moonitoring.d.ts",
-                "https://dns.c3d.gg/manifest.json",
-                "https://dns.c3d.gg/sri.json"
+                "https://cdn.c3d.gg/mwi-moonitoring-library.js",
+                "https://cdn.c3d.gg/mwi-moonitoring-library.min.js",
+                "https://cdn.c3d.gg/mwi-moonitoring.d.ts",
+                "https://cdn.c3d.gg/manifest.json",
+                "https://cdn.c3d.gg/sri.json"
               ]
             }')
           
@@ -388,13 +388,13 @@ jobs:
           echo ""
           echo "🌐 CDN URLs:"
           echo "  📄 Latest (auto-updates):"
-          echo "    - https://dns.c3d.gg/mwi-moonitoring-library.min.js"
-          echo "    - https://dns.c3d.gg/mwi-moonitoring-library.js"
+          echo "    - https://cdn.c3d.gg/mwi-moonitoring-library.min.js"
+          echo "    - https://cdn.c3d.gg/mwi-moonitoring-library.js"
           echo ""
           echo "  🔒 Versioned (immutable):"
-          echo "    - https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js"
-          echo "    - https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.js"
+          echo "    - https://cdn.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js"
+          echo "    - https://cdn.c3d.gg/mwi-moonitoring-library-v${VERSION}.js"
           echo ""
           echo "  📋 Metadata:"
-          echo "    - https://dns.c3d.gg/sri.json"
-          echo "    - https://dns.c3d.gg/manifest.json"
+          echo "    - https://cdn.c3d.gg/sri.json"
+          echo "    - https://cdn.c3d.gg/manifest.json"

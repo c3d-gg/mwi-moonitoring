@@ -39,19 +39,19 @@ With this **READ-ONLY** library, developers can create:
 // @match        https://www.milkywayidle.com/*
 
 // Option 1: Auto-updating (for development)
-// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
+// @require      https://cdn.c3d.gg/mwi-moonitoring-library.min.js
 
 // Option 2: With security verification (for production)
-// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=N+NCIaE2ABMLNnATi3IuyBYdxA6H4dYI0nT+ClopGZk=
+// @require      https://cdn.c3d.gg/mwi-moonitoring-library.min.js#sha256=N+NCIaE2ABMLNnATi3IuyBYdxA6H4dYI0nT+ClopGZk=
 
 // Option 3: Specific version (most stable)
-// @require      https://dns.c3d.gg/mwi-moonitoring-library-v0.4.1.min.js
+// @require      https://cdn.c3d.gg/mwi-moonitoring-library-v0.4.1.min.js
 // ==/UserScript==
 ```
 
 ### Get Current Version & Hashes
 
-📦 **Check current version**: https://dns.c3d.gg/sri.json  
+📦 **Check current version**: https://cdn.c3d.gg/sri.json  
 📋 **Copy @require lines**: Ready-to-use in the sri.json file  
 🔐 **SRI Documentation**: [SRI-HASHES.md](./SRI-HASHES.md)
 
@@ -77,7 +77,7 @@ For local testing:
 // @name         My MWI Addon
 // @match        https://www.milkywayidle.com/*
 // @match        https://test.milkywayidle.com/*
-// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
+// @require      https://cdn.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        none
 // ==/UserScript==
 
@@ -309,7 +309,7 @@ console.log('Library ready!');
 // ==UserScript==
 // @name         MWI Inventory Overflow Alert
 // @match        https://www.milkywayidle.com/*
-// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
+// @require      https://cdn.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        GM_notification
 // ==/UserScript==
 
@@ -343,7 +343,7 @@ console.log('Library ready!');
 // ==UserScript==
 // @name         MWI Action Time Tracker
 // @match        https://www.milkywayidle.com/*
-// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
+// @require      https://cdn.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        none
 // ==/UserScript==
 
@@ -380,7 +380,7 @@ console.log('Library ready!');
 // ==UserScript==
 // @name         MWI Inventory Monitor
 // @match        https://www.milkywayidle.com/*
-// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
+// @require      https://cdn.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        GM_notification
 // ==/UserScript==
 
