@@ -6,7 +6,7 @@
 // @author       mathewcst
 // @match        https://www.milkywayidle.com/*
 // @match        https://test.milkywayidle.com/*
-// @require      https://raw.githubusercontent.com/mathewcst/mwi-moonitoring/main/mwi-moonitoring.js
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        GM_addStyle
 // ==/UserScript==
 

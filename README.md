@@ -14,18 +14,23 @@ High-performance WebSocket event library for Milky Way Idle addon development. Z
 
 ## Installation
 
-### Method 1: Direct @require (Recommended)
+### Method 1: CDN @require (Recommended)
 
 Add this line to your userscript header:
 
 ```javascript
-// @require https://raw.githubusercontent.com/mathewcst/mwi-moonitoring/main/mwi-moonitoring.js
+// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js
 ```
+
+Available CDN options:
+- `https://dns.c3d.gg/mwi-moonitoring-library.js` - Full version
+- `https://dns.c3d.gg/mwi-moonitoring-library.min.js` - Minified (recommended)
+- `https://dns.c3d.gg/mwi-moonitoring-library-v0.1.0.min.js` - Specific version (stable)
 
 ### Method 2: Local Development
 
 ```javascript
-// @require file:///path/to/mwi-moonitoring.js
+// @require file:///path/to/mwi-moonitoring-library.js
 ```
 
 ## Quick Start
@@ -35,7 +40,7 @@ Add this line to your userscript header:
 // @name         My MWI Addon
 // @match        https://www.milkywayidle.com/*
 // @match        https://test.milkywayidle.com/*
-// @require      https://raw.githubusercontent.com/mathewcst/mwi-moonitoring/main/mwi-moonitoring.js
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        none
 // ==/UserScript==
 
@@ -267,7 +272,7 @@ console.log('Library ready!');
 // ==UserScript==
 // @name         MWI Auto-Sell Common Items
 // @match        https://www.milkywayidle.com/*
-// @require      https://raw.githubusercontent.com/mathewcst/mwi-moonitoring/main/mwi-moonitoring.js
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        none
 // ==/UserScript==
 
@@ -296,7 +301,7 @@ console.log('Library ready!');
 // ==UserScript==
 // @name         MWI Action Time Tracker
 // @match        https://www.milkywayidle.com/*
-// @require      https://raw.githubusercontent.com/mathewcst/mwi-moonitoring/main/mwi-moonitoring.js
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        none
 // ==/UserScript==
 
@@ -333,7 +338,7 @@ console.log('Library ready!');
 // ==UserScript==
 // @name         MWI Inventory Monitor
 // @match        https://www.milkywayidle.com/*
-// @require      https://raw.githubusercontent.com/mathewcst/mwi-moonitoring/main/mwi-moonitoring.js
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
 // @grant        GM_notification
 // ==/UserScript==
 

@@ -73,9 +73,9 @@ jobs:
               }
             },
             "cdn": {
-              "base": "https://cdn.mwi-moonitoring.c3d.gg",
-              "recommended": "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js",
-              "stable": "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js"
+              "base": "https://dns.c3d.gg",
+              "recommended": "https://dns.c3d.gg/mwi-moonitoring-library.min.js",
+              "stable": "https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js"
             }
           }
           EOF
@@ -164,29 +164,29 @@ jobs:
             
             **Recommended (minified, latest):**
             ```
-            https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js
+            https://dns.c3d.gg/mwi-moonitoring-library.min.js
             ```
             
             **Stable (minified, versioned):**
             ```
-            https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
+            https://dns.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
             ```
             
             **TypeScript definitions:**
             ```
-            https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.d.ts
+            https://dns.c3d.gg/mwi-moonitoring.d.ts
             ```
             
             ### Usage
             
             Add this to your userscript header:
             ```javascript
-            // @require https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js
+            // @require https://dns.c3d.gg/mwi-moonitoring-library.min.js
             ```
             
             Or for a specific version:
             ```javascript
-            // @require https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
+            // @require https://dns.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
             ```
             
             ### Changes
@@ -208,21 +208,21 @@ jobs:
           
           ## CDN Usage
           
-          The library is available via Cloudflare R2 CDN at \`cdn.mwi-moonitoring.c3d.gg\`.
+          The library is available via Cloudflare R2 CDN at \`dns.c3d.gg\`.
           
           ### Latest Version (auto-updates)
           \`\`\`javascript
-          // @require https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js
+          // @require https://dns.c3d.gg/mwi-moonitoring-library.min.js
           \`\`\`
           
           ### Specific Version (stable)
           \`\`\`javascript
-          // @require https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js
+          // @require https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js
           \`\`\`
           
           ### TypeScript Definitions
           \`\`\`typescript
-          /// <reference path="https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.d.ts" />
+          /// <reference path="https://dns.c3d.gg/mwi-moonitoring.d.ts" />
           \`\`\`
           
           ### Available Files
@@ -251,9 +251,9 @@ jobs:
             -H "Content-Type: application/json" \
             --data '{
               "files": [
-                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.js",
-                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js",
-                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.d.ts",
-                "https://cdn.mwi-moonitoring.c3d.gg/manifest.json"
+                "https://dns.c3d.gg/mwi-moonitoring-library.js",
+                "https://dns.c3d.gg/mwi-moonitoring-library.min.js",
+                "https://dns.c3d.gg/mwi-moonitoring.d.ts",
+                "https://dns.c3d.gg/manifest.json"
               ]
             }'
