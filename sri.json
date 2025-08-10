@@ -3,7 +3,7 @@
   "updated": "2025-08-10T00:00:00Z",
   "library": {
     "minified": {
-      "url": "https://cdn.c3d.gg/mwi-moonitoring-library.min.js",
+      "url": "https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js",
       "size": 12416,
       "hashes": {
         "sha256": "B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=",
@@ -11,14 +11,14 @@
         "md5": "4462cd2ba60ffcd6cd58ff19b7c5c815"
       },
       "require": {
-        "latest": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js",
-        "with_sha256": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=",
-        "with_md5": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js#md5=4462cd2ba60ffcd6cd58ff19b7c5c815",
-        "versioned": "// @require https://cdn.c3d.gg/mwi-moonitoring-library-v0.1.0.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA="
+        "latest": "// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js",
+        "with_sha256": "// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=",
+        "with_md5": "// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#md5=4462cd2ba60ffcd6cd58ff19b7c5c815",
+        "versioned": "// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library-v0.1.0.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA="
       }
     },
     "full": {
-      "url": "https://cdn.c3d.gg/mwi-moonitoring-library.js",
+      "url": "https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js",
       "size": 38227,
       "hashes": {
         "sha256": "Qh6W7xeY9Qv4eQ8vKSxqIkOQVYXWLbxtZjFvBGx0jLs=",
@@ -26,10 +26,10 @@
         "md5": "c4ceb75a0b6588a9e5230ea5a9a9e3c7"
       },
       "require": {
-        "latest": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.js",
-        "with_sha256": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.js#sha256=Qh6W7xeY9Qv4eQ8vKSxqIkOQVYXWLbxtZjFvBGx0jLs=",
-        "with_md5": "// @require https://cdn.c3d.gg/mwi-moonitoring-library.js#md5=c4ceb75a0b6588a9e5230ea5a9a9e3c7",
-        "versioned": "// @require https://cdn.c3d.gg/mwi-moonitoring-library-v0.1.0.js#sha256=Qh6W7xeY9Qv4eQ8vKSxqIkOQVYXWLbxtZjFvBGx0jLs="
+        "latest": "// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js",
+        "with_sha256": "// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#sha256=Qh6W7xeY9Qv4eQ8vKSxqIkOQVYXWLbxtZjFvBGx0jLs=",
+        "with_md5": "// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#md5=c4ceb75a0b6588a9e5230ea5a9a9e3c7",
+        "versioned": "// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library-v0.1.0.js#sha256=Qh6W7xeY9Qv4eQ8vKSxqIkOQVYXWLbxtZjFvBGx0jLs="
       }
     }
   },

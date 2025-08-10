@@ -7,28 +7,28 @@ This document contains the SRI hashes for all versions of the MWI-Moonitoring li
 ### Production (Minified) - Recommended
 ```javascript
 // Option 1: Auto-updating (no hash)
-// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js
 
 // Option 2: Locked to v0.1.0 with SRI hash
-// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=
 
 // Option 3: Versioned URL with SRI hash (most secure)
-// @require https://cdn.c3d.gg/mwi-moonitoring-library-v0.1.0.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library-v0.1.0.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=
 
 // Alternative: MD5 hash (less secure but wider compatibility)
-// @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js#md5=4462cd2ba60ffcd6cd58ff19b7c5c815
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#md5=4462cd2ba60ffcd6cd58ff19b7c5c815
 ```
 
 ### Development (Full)
 ```javascript
 // Option 1: Auto-updating (no hash)
-// @require https://cdn.c3d.gg/mwi-moonitoring-library.js
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js
 
 // Option 2: Locked to v0.1.0 with SRI hash
-// @require https://cdn.c3d.gg/mwi-moonitoring-library.js#sha256=Qh6W7xeY9Qv4eQ8vKSxqIkOQVYXWLbxtZjFvBGx0jLs=
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#sha256=Qh6W7xeY9Qv4eQ8vKSxqIkOQVYXWLbxtZjFvBGx0jLs=
 
 // Alternative: MD5 hash
-// @require https://cdn.c3d.gg/mwi-moonitoring-library.js#md5=c4ceb75a0b6588a9e5230ea5a9a9e3c7
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#md5=c4ceb75a0b6588a9e5230ea5a9a9e3c7
 ```
 
 ## When to Use Which Option
@@ -153,7 +153,7 @@ If you get an integrity check failure:
 // @name         My MWI Dev Addon
 // @version      1.0.0
 // @match        https://www.milkywayidle.com/*
-// @require      https://cdn.c3d.gg/mwi-moonitoring-library.min.js
+// @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js
 // @grant        none
 // ==/UserScript==
 
@@ -173,7 +173,7 @@ If you get an integrity check failure:
 // @name         My MWI Production Addon
 // @version      1.0.0
 // @match        https://www.milkywayidle.com/*
-// @require      https://cdn.c3d.gg/mwi-moonitoring-library.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=
+// @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=
 // @grant        none
 // ==/UserScript==
 
