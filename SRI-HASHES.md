@@ -2,7 +2,7 @@
 
 This document contains the SRI hashes for all versions of the MWI-Moonitoring library. Use these hashes with Tampermonkey's `@require` directive to ensure the library hasn't been tampered with.
 
-## Current Version (v0.1.1)
+## Current Version (v0.2.2)
 
 ### Production (Minified) - Recommended
 ```javascript
@@ -10,10 +10,10 @@ This document contains the SRI hashes for all versions of the MWI-Moonitoring li
 // @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js
 
 // Option 2: Locked to v0.1.0 with SRI hash
-// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=Qh9t1oFtYxej0/XuJdu1m3MLBWQRpRbn08opWuf+2GM=
 
 // Option 3: Versioned URL with SRI hash (most secure)
-// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library-v0.1.0.min.js#sha256=pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library-v0.1.0.min.js#sha256=Qh9t1oFtYxej0/XuJdu1m3MLBWQRpRbn08opWuf+2GM=
 
 // Alternative: MD5 hash (less secure but wider compatibility)
 // @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#md5=4462cd2ba60ffcd6cd58ff19b7c5c815
@@ -25,7 +25,7 @@ This document contains the SRI hashes for all versions of the MWI-Moonitoring li
 // @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js
 
 // Option 2: Locked to v0.1.0 with SRI hash
-// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#sha256=pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#sha256=Qh9t1oFtYxej0/XuJdu1m3MLBWQRpRbn08opWuf+2GM=
 
 // Alternative: MD5 hash
 // @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#md5=c4ceb75a0b6588a9e5230ea5a9a9e3c7
@@ -119,11 +119,23 @@ $hash = Get-FileHash -Algorithm MD5 -Path "file.js"
 
 ## Version History
 
+### v0.2.2 - 2025-08-10
+| File | SHA-256 (Base64) | SHA-256 (Hex) | MD5 (Hex) |
+|------|------------------|---------------|-----------||
+| mwi-moonitoring-library.min.js | `Qh9t1oFtYxej0/XuJdu1m3MLBWQRpRbn08opWuf+2GM=` | `421f6dd6816d6317a3d3f5ee25dbb59b730b056411a516e7d3ca295ae7fed863` | `167759e79745b2eb6e75a1bb7dd5e047` |
+| mwi-moonitoring-library.js | `HN9GIdrJEe6rXoNtZfC5zRntxuc9YIPLLCiVwj1bWvA=` | `1cdf4621dac911eeab5e836d65f0b9cd19edc6e73d6083cb2c2895c23d5b5af0` | `41df9f12df3cb7f89d5784e3815f045c` |
+
 ### v0.1.1 - 2025-08-10
 | File | SHA-256 (Base64) | SHA-256 (Hex) | MD5 (Hex) |
 |------|------------------|---------------|-----------||
 | mwi-moonitoring-library.min.js | `pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=` | `a4c66122da6a4c354a7e96cd8c4c927df69357dec6e555c20e197df1f3fc5a1d` | `b2bda5367525c74a389f3ed7947ec565` |
 | mwi-moonitoring-library.js | `X6fg5oEm16OOwT3RU74N7/PZYnsMxZGqAzwXkpgvzJY=` | `5fa7e0e68126d7a38ec13dd153be0deff3d9627b0cc591aa033c1792982fcc96` | `e94ac5899c8a5555a8f02174b3b68866` |
+
+### v0.2.2 - 2025-08-10
+| File | SHA-256 (Base64) | SHA-256 (Hex) | MD5 (Hex) |
+|------|------------------|---------------|-----------||
+| mwi-moonitoring-library.min.js | `Qh9t1oFtYxej0/XuJdu1m3MLBWQRpRbn08opWuf+2GM=` | `421f6dd6816d6317a3d3f5ee25dbb59b730b056411a516e7d3ca295ae7fed863` | `167759e79745b2eb6e75a1bb7dd5e047` |
+| mwi-moonitoring-library.js | `HN9GIdrJEe6rXoNtZfC5zRntxuc9YIPLLCiVwj1bWvA=` | `1cdf4621dac911eeab5e836d65f0b9cd19edc6e73d6083cb2c2895c23d5b5af0` | `41df9f12df3cb7f89d5784e3815f045c` |
 
 ### v0.1.0 - 2025-08-10 (Initial Release)
 | File | SHA-256 (Base64) | SHA-256 (Hex) | MD5 (Hex) |
@@ -179,7 +191,7 @@ If you get an integrity check failure:
 // @name         My MWI Production Addon
 // @version      1.0.0
 // @match        https://www.milkywayidle.com/*
-// @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=
+// @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=Qh9t1oFtYxej0/XuJdu1m3MLBWQRpRbn08opWuf+2GM=
 // @grant        none
 // ==/UserScript==
 

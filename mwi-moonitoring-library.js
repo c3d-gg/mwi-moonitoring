@@ -1,6 +1,6 @@
 /**
  * MWI Moonitoring - READ-ONLY WebSocket Event Library for Milky Way Idle
- * @version 0.2.1
+ * @version 0.2.2
  * @author c3d.gg
  * @license MIT
  * @homepage https://github.com/mathewcst/mwi-moonitoring
@@ -29,7 +29,7 @@
   // Configuration and Constants
   // ============================================================================
 
-  const VERSION = '0.2.1'
+  const VERSION = '0.2.2'
   const LIBRARY_NAME = 'MWI-Moonitoring'
 
   /**
