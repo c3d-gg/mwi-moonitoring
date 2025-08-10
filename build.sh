@@ -160,7 +160,10 @@ update_library_version() {
     # Update VERSION constant
     sed -i "s/const VERSION = '[^']*'/const VERSION = '$new_version'/" "$LIBRARY_FILE"
     
-    print_success "Updated $LIBRARY_FILE"
+    # Update header comment version
+    sed -i "s/@version [0-9]\+\.[0-9]\+\.[0-9]\+/@version $new_version/" "$LIBRARY_FILE"
+    
+    print_success "Updated $LIBRARY_FILE version to $new_version"
 }
 
 # Generate minified version
@@ -209,15 +212,63 @@ generate_hashes() {
     echo ""
 }
 
-# Update README version references
+# Update README with version references and SRI hashes
 update_readme() {
     local new_version=$1
     print_step "Updating README.md..."
     
+    # Get current hashes
+    local sha256_min=$(sha256sum "$MINIFIED_FILE" | cut -d' ' -f1)
+    local sha256_min_b64=$(echo -n "$sha256_min" | xxd -r -p | base64)
+    local md5_min=$(md5sum "$MINIFIED_FILE" | cut -d' ' -f1)
+    
+    local sha256_full=$(sha256sum "$LIBRARY_FILE" | cut -d' ' -f1)
+    local sha256_full_b64=$(echo -n "$sha256_full" | xxd -r -p | base64)
+    local md5_full=$(md5sum "$LIBRARY_FILE" | cut -d' ' -f1)
+    
     # Update versioned URLs in README
     sed -i "s/mwi-moonitoring-library-v[0-9]\+\.[0-9]\+\.[0-9]\+/mwi-moonitoring-library-v$new_version/g" "$README_FILE"
     
-    print_success "Updated version references in README"
+    # Update SHA-256 hashes in README (find all SHA-256 base64 patterns and replace with current)
+    sed -i "s/#sha256=[A-Za-z0-9+/=]\+/#sha256=$sha256_min_b64/g" "$README_FILE"
+    
+    # Update MD5 hashes in README
+    sed -i "s/#md5=[a-f0-9]\+/#md5=$md5_min/g" "$README_FILE"
+    
+    print_success "Updated version references and SRI hashes in README"
+}
+
+# Update SRI-HASHES.md with current version
+update_sri_hashes() {
+    local new_version=$1
+    print_step "Updating SRI-HASHES.md..."
+    
+    # Get current hashes
+    local sha256_min=$(sha256sum "$MINIFIED_FILE" | cut -d' ' -f1)
+    local sha256_min_b64=$(echo -n "$sha256_min" | xxd -r -p | base64)
+    local md5_min=$(md5sum "$MINIFIED_FILE" | cut -d' ' -f1)
+    local size_min=$(stat -c%s "$MINIFIED_FILE")
+    
+    local sha256_full=$(sha256sum "$LIBRARY_FILE" | cut -d' ' -f1)
+    local sha256_full_b64=$(echo -n "$sha256_full" | xxd -r -p | base64)
+    local md5_full=$(md5sum "$LIBRARY_FILE" | cut -d' ' -f1)
+    local size_full=$(stat -c%s "$LIBRARY_FILE")
+    
+    # Update current version section at top of file
+    sed -i "s/## Current Version (v[0-9]\+\.[0-9]\+\.[0-9]\+)/## Current Version (v$new_version)/" "$SRI_HASHES_FILE"
+    
+    # Update all SHA-256 hashes for minified file
+    sed -i "s/#sha256=[A-Za-z0-9+/=]\+/#sha256=$sha256_min_b64/g" "$SRI_HASHES_FILE"
+    
+    # Update the version history table (add new version at top)
+    local today=$(date "+%Y-%m-%d")
+    local new_row="### v$new_version (Current) - $today"
+    sed -i "/^### v[0-9]/i $new_row\n| File | SHA-256 (Base64) | SHA-256 (Hex) | MD5 (Hex) |\n|------|------------------|---------------|-----------||\n| mwi-moonitoring-library.min.js | \`$sha256_min_b64\` | \`$sha256_min\` | \`$md5_min\` |\n| mwi-moonitoring-library.js | \`$sha256_full_b64\` | \`$sha256_full\` | \`$md5_full\` |\n" "$SRI_HASHES_FILE"
+    
+    # Remove "(Current)" from previous versions
+    sed -i "s/ (Current) - / - /g" "$SRI_HASHES_FILE"
+    
+    print_success "Updated SRI-HASHES.md with v$new_version"
 }
 
 # Stage files for commit
@@ -421,7 +472,14 @@ main() {
     if [ "$dry_run" = false ]; then
         update_readme "$new_version"
     else
-        print_step "[DRY RUN] Would update README version references"
+        print_step "[DRY RUN] Would update README version references and SRI hashes"
+    fi
+    
+    # Update SRI-HASHES.md
+    if [ "$dry_run" = false ]; then
+        update_sri_hashes "$new_version"
+    else
+        print_step "[DRY RUN] Would update SRI-HASHES.md"
     fi
     
     # Generate and display hashes

@@ -42,7 +42,7 @@ With this **READ-ONLY** library, developers can create:
 // @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
 
 // Option 2: With security verification (for production)
-// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=BQrADo3J3ULnnAa1SmT8mO/zt/CdpJ5h6IWtNcfpb3M=
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=42ROXsEoBwTtA1DZYsJo6PeKVTRK8qII+P6r19CQg8k=
 
 // Option 3: Specific version (most stable)
 // @require      https://dns.c3d.gg/mwi-moonitoring-library-v0.4.0.min.js
