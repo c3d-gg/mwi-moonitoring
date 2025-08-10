@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MWI Event Discovery Tool (READ-ONLY)
 // @namespace    https://github.com/mathewcst/mwi-moonitoring/examples
-// @version      1.0.0
+// @version      2.0.0
 // @description  READ-ONLY tool to discover and log WebSocket events in Milky Way Idle
 // @author       mathewcst
 // @match        https://www.milkywayidle.com/*
@@ -12,6 +12,13 @@
 
 (function() {
     'use strict';
+    
+    /**
+     * MWI Event Discovery Tool v2.0.0
+     * 
+     * Uses isolated instance API to discover WebSocket events
+     * without interfering with other addons.
+     */
 
     // Add a floating panel for event discovery
     GM_addStyle(`
@@ -92,16 +99,21 @@
     let isDiscovering = false;
     let updateInterval = null;
 
-    // Configure library for discovery
-    MWIWebSocket.configure({
+    // Create isolated instance for event discovery
+    const discoveryTool = MWIWebSocket.createInstance({
         enableDiscovery: true,
         debug: true,
         logLevel: 'info',
-        historySize: 100
+        historySize: 100,
+        batchInterval: 100,  // Fast processing for discovery
+        enableCache: true,
+        cacheSize: 50        // Cache recent events for analysis
     });
+    
+    console.log(`%c🔍 Discovery Tool Instance: ${discoveryTool.id}`, 'color: #0f0; font-style: italic;');
 
     // Listen to all events using wildcard
-    MWIWebSocket.on('*', (eventType, data) => {
+    discoveryTool.on('*', (eventType, data) => {
         // Update event counts
         const count = eventCounts.get(eventType) || 0;
         eventCounts.set(eventType, count + 1);
@@ -129,7 +141,7 @@
 
     // Update metrics display
     function updateMetrics() {
-        const metrics = MWIWebSocket.getMetrics();
+        const metrics = discoveryTool.getMetrics();
         document.getElementById('total-events').textContent = metrics.totalEvents;
         document.getElementById('events-per-sec').textContent = metrics.eventsPerSecond;
         document.getElementById('unique-types').textContent = eventCounts.size;
@@ -151,7 +163,7 @@
         
         console.log('Starting event discovery for 60 seconds...');
         
-        const events = await MWIWebSocket.discover(60000);
+        const events = await discoveryTool.discover(60000);
         
         console.log('Discovery complete!');
         console.table(events);
@@ -171,8 +183,8 @@
 
     document.getElementById('clear-btn').onclick = function() {
         eventCounts.clear();
-        MWIWebSocket.resetMetrics();
-        MWIWebSocket.clear();
+        discoveryTool.resetMetrics();
+        discoveryTool.clear();
         updateEventList();
         updateMetrics();
         console.log('Cleared all event data');
@@ -181,12 +193,14 @@
     document.getElementById('export-btn').onclick = function() {
         const exportData = {
             timestamp: new Date().toISOString(),
-            metrics: MWIWebSocket.getMetrics(),
+            instanceId: discoveryTool.id,
+            metrics: discoveryTool.getMetrics(),
             events: Array.from(eventCounts.entries()).map(([type, count]) => ({
                 type,
                 count
             })),
-            history: MWIWebSocket.getEventHistory(50)
+            history: discoveryTool.getEventHistory(50),
+            globalInfo: MWIWebSocket.getInstanceInfo()
         };
         
         const json = JSON.stringify(exportData, null, 2);
@@ -213,15 +227,30 @@
     };
 
     // Log initialization
-    console.log('%c🔍 MWI Event Discovery Tool Loaded!', 'color: #0f0; font-size: 16px; font-weight: bold');
-    console.log('Library version:', MWIWebSocket.version);
-    console.log('Ready:', MWIWebSocket.isReady());
+    console.log('%c🔍 MWI Event Discovery Tool v2.0.0 Loaded!', 'color: #0f0; font-size: 16px; font-weight: bold');
+    console.log('Library version:', discoveryTool.version);
+    console.log('Instance ID:', discoveryTool.id);
+    console.log('Ready:', discoveryTool.isReady());
     console.log('Use the panel in the top-right corner to discover events');
     
     // Also log some useful commands
     console.log('%cUseful commands:', 'color: #ff0; font-weight: bold');
-    console.log('MWIWebSocket.getMetrics() - Get performance metrics');
-    console.log('MWIWebSocket.getEventHistory(10) - Get last 10 events');
-    console.log('MWIWebSocket.discover(30000) - Discover events for 30 seconds');
-    console.log('MWIWebSocket.enableProfiling(true) - Enable debug logging');
+    console.log('discoveryTool.getMetrics() - Get performance metrics');
+    console.log('discoveryTool.getEventHistory(10) - Get last 10 events');
+    console.log('discoveryTool.discover(30000) - Discover events for 30 seconds');
+    console.log('discoveryTool.enableProfiling(true) - Enable debug logging');
+    console.log('MWIWebSocket.getInstanceInfo() - Get global instance information');
+    
+    // Expose for debugging
+    window.MWIDiscovery = {
+        instance: discoveryTool,
+        eventCounts: eventCounts,
+        globalInfo: () => MWIWebSocket.getInstanceInfo()
+    };
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        discoveryTool.destroy();
+        clearInterval(updateInterval);
+    });
 })();

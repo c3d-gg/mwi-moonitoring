@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MWI Character Tracker (READ-ONLY)
 // @namespace    https://github.com/mathewcst/mwi-moonitoring/examples
-// @version      1.0.0
+// @version      2.0.0
 // @description  READ-ONLY tracker for character progress and inventory changes in Milky Way Idle
 // @author       mathewcst
 // @match        https://www.milkywayidle.com/*
@@ -21,6 +21,9 @@
      * This script is TOS-compliant and only READS WebSocket data.
      * It does NOT send any commands or automate gameplay.
      * Used for tracking progress and displaying statistics only.
+     * 
+     * NEW IN v2.0.0: Uses isolated instance API for better performance
+     * and no conflicts with other addons.
      */
 
     // Character state tracking
@@ -45,8 +48,8 @@
         characterState.gains.experience = new Map(savedState.gains?.experience || []);
     }
 
-    // Configure library for optimal performance
-    MWIWebSocket.configure({
+    // Create isolated instance for this addon with optimal configuration
+    const tracker = MWIWebSocket.createInstance({
         eventWhitelist: [
             'init_character_data',
             'items_updated',
@@ -56,11 +59,15 @@
         ],
         enableBatching: true,
         batchInterval: 500, // Process every 500ms
-        debug: false
+        debug: false,
+        historySize: 50,     // Keep moderate history for review
+        cacheSize: 20        // Small cache for performance
     });
+    
+    console.log(`%c✨ Character Tracker using isolated instance: ${tracker.id}`, 'color: #00ff00; font-style: italic;');
 
     // Handle character initialization
-    MWIWebSocket.on('init_character_data', (eventType, data) => {
+    tracker.on('init_character_data', (eventType, data) => {
         console.log(`%c🎮 Character Initialized: ${data.character.name}`, 'color: #00ff00; font-size: 14px; font-weight: bold');
         
         // Update character state
@@ -93,7 +100,7 @@
     });
 
     // Track inventory changes
-    MWIWebSocket.on('items_updated', (eventType, data) => {
+    tracker.on('items_updated', (eventType, data) => {
         const changes = [];
         
         data.characterItems.forEach(item => {
@@ -142,7 +149,7 @@
     });
 
     // Track action completions
-    MWIWebSocket.on('action_completed', (eventType, data) => {
+    tracker.on('action_completed', (eventType, data) => {
         console.log('✅ Action completed');
         
         // Track experience gains
@@ -247,14 +254,19 @@
         },
         
         metrics: () => {
-            const metrics = MWIWebSocket.getMetrics();
+            const metrics = tracker.getMetrics();
             console.log('%c📈 Performance Metrics:', 'color: #00ff00; font-weight: bold');
+            console.log(`Instance ID: ${tracker.id}`);
             console.log(`Events processed: ${metrics.totalEvents}`);
             console.log(`Events/sec: ${metrics.eventsPerSecond}`);
             console.log(`Avg processing time: ${metrics.avgProcessingTime.toFixed(2)}ms`);
             console.log(`Peak processing time: ${metrics.peakProcessingTime.toFixed(2)}ms`);
             return metrics;
-        }
+        },
+        
+        // Debug functions
+        instance: () => tracker,
+        globalInfo: () => MWIWebSocket.getInstanceInfo()
     };
 
     // Display help on load
@@ -267,9 +279,16 @@
     console.log('MWITracker.export() - Export character data');
     console.log('MWITracker.metrics() - Show performance metrics');
 
-    // Wait for library to be ready
-    MWIWebSocket.waitForReady().then(() => {
-        console.log('%c✅ MWI Moonitoring library ready', 'color: #00ff00');
+    // Wait for instance to be ready
+    tracker.waitForReady().then(() => {
+        console.log('%c✅ Character Tracker instance ready', 'color: #00ff00');
+        console.log(`Instance ID: ${tracker.id}`);
         console.log('Listening for character events...');
+    });
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        tracker.destroy();
+        saveState();
     });
 })();
