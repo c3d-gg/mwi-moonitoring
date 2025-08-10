@@ -1,6 +1,6 @@
 /**
  * MWI Moonitoring - READ-ONLY WebSocket Event Library for Milky Way Idle
- * @version 0.1.1
+ * @version 0.2.0
  * @author c3d.gg
  * @license MIT
  * @homepage https://github.com/mathewcst/mwi-moonitoring
@@ -14,18 +14,35 @@
  * WebSocket events in Milky Way Idle. Designed to be used by multiple addons
  * simultaneously without conflicts.
  *
+ * 🔧 NEW IN v0.2.0: Isolated Instances for Multiple Addons
+ * Each addon should create its own instance to avoid configuration conflicts.
+ *
  * IMPORTANT: This is a LIBRARY, not a userscript. Use it via @require:
  * // @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js
  *
  * @example
+ * // ✅ RECOMMENDED: Create isolated instance per addon
  * // In your userscript header:
  * // @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js
  *
- * // In your script (READ-ONLY operations):
- * MWIWebSocket.on('init_character_data', (eventType, data) => {
+ * // In your script:
+ * const myWebSocket = MWIWebSocket.createInstance({
+ *   batchInterval: 30000, // Your custom settings won't affect other addons
+ *   debug: true,
+ *   eventWhitelist: ['init_character_data', 'items_updated']
+ * });
+ * 
+ * myWebSocket.on('init_character_data', (eventType, data) => {
  *   console.log('Character loaded:', data.character.name);
  *   // ✅ OK: Reading and displaying data
  *   // ❌ NOT OK: Sending commands or automating gameplay
+ * });
+ *
+ * @example
+ * // ⚠️ LEGACY: Backward compatible but shared between addons
+ * // Only use if you understand that configuration changes affect ALL addons
+ * MWIWebSocket.on('init_character_data', (eventType, data) => {
+ *   console.log('Character loaded:', data.character.name);
  * });
  *
  * @credits Original WebSocket hook technique by YangLeda
@@ -43,7 +60,7 @@
   // Configuration and Constants
   // ============================================================================
 
-  const VERSION = '0.1.1'
+  const VERSION = '0.2.0'
   const LIBRARY_NAME = 'MWI-Moonitoring'
 
   /**
@@ -655,33 +672,32 @@
   }
 
   // ============================================================================
-  // Main WebSocket Hook Manager
+  // Global WebSocket Hook (Shared across all instances)
   // ============================================================================
 
-  class WebSocketHookManager {
+  class GlobalWebSocketHook {
     constructor() {
-      this.config = { ...DEFAULT_CONFIG }
-      this.logger = new Logger(this.config)
-      this.emitter = new EventEmitter(this.config, this.logger)
-      this.monitor = new PerformanceMonitor()
-      this.discovery = new EventDiscovery(this.config, this.logger)
-      this.queue = new MessageQueue(this.config, this.processBatch.bind(this))
-      this.queue.updateConfig(this.config) // Initialize logger
-
       this.isHooked = false
       this.originalGet = null
-      this.eventHistory = []
-      this.eventCache = new Map()
-
-      this._initialized = true
+      this.instances = new Set()
     }
 
-    /**
-     * Install the WebSocket hook
-     */
+    addInstance(instance) {
+      this.instances.add(instance)
+      if (!this.isHooked) {
+        this.installHook()
+      }
+    }
+
+    removeInstance(instance) {
+      this.instances.delete(instance)
+      if (this.instances.size === 0 && this.isHooked) {
+        this.removeHook()
+      }
+    }
+
     installHook() {
       if (this.isHooked) {
-        this.logger.debug('WebSocket already hooked')
         return
       }
 
@@ -722,7 +738,7 @@
           Object.defineProperty(this, 'data', { value: message })
 
           // Process the message asynchronously to avoid blocking
-          setTimeout(() => self.processMessage(message), 0)
+          setTimeout(() => self.distributeMessage(message), 0)
 
           return message
         }
@@ -730,16 +746,13 @@
         Object.defineProperty(MessageEvent.prototype, 'data', dataProperty)
 
         this.isHooked = true
-        this.logger.info('WebSocket hook installed successfully')
+        console.log('[MWI-Moonitoring] Global WebSocket hook installed successfully')
       } catch (error) {
-        this.logger.error('Failed to install WebSocket hook:', error)
+        console.error('[MWI-Moonitoring] Failed to install WebSocket hook:', error)
         throw error
       }
     }
 
-    /**
-     * Remove the WebSocket hook
-     */
     removeHook() {
       if (!this.isHooked || !this.originalGet) {
         return
@@ -756,42 +769,104 @@
 
         this.isHooked = false
         this.originalGet = null
-        this.logger.info('WebSocket hook removed')
+        console.log('[MWI-Moonitoring] Global WebSocket hook removed')
       } catch (error) {
-        this.logger.error('Failed to remove WebSocket hook:', error)
+        console.error('[MWI-Moonitoring] Failed to remove WebSocket hook:', error)
       }
     }
 
+    distributeMessage(message) {
+      // Quick validation at global level
+      if (typeof message !== 'string' || message.length < 2) {
+        return
+      }
+
+      // Quick JSON check
+      if (message[0] !== '{' && message[0] !== '[') {
+        return
+      }
+
+      // Parse JSON once at global level for efficiency
+      const data = utils.safeParse(message)
+      if (!data || !data.type) {
+        return
+      }
+
+      // Distribute to all instances
+      this.instances.forEach(instance => {
+        try {
+          instance.receiveMessage(data.type, data, Date.now())
+        } catch (error) {
+          console.error('[MWI-Moonitoring] Error distributing message to instance:', error)
+        }
+      })
+    }
+  }
+
+  // Global hook instance (singleton)
+  const globalHook = new GlobalWebSocketHook()
+
+  // ============================================================================
+  // Per-Instance WebSocket Hook Manager
+  // ============================================================================
+
+  class WebSocketHookInstance {
+    constructor(config = {}) {
+      this.id = Math.random().toString(36).substr(2, 9) // Generate unique instance ID
+      this.config = { ...DEFAULT_CONFIG, ...config }
+      this.logger = new Logger(this.config)
+      this.emitter = new EventEmitter(this.config, this.logger)
+      this.monitor = new PerformanceMonitor()
+      this.discovery = new EventDiscovery(this.config, this.logger)
+      this.queue = new MessageQueue(this.config, this.processBatch.bind(this))
+      this.queue.updateConfig(this.config) // Initialize logger
+
+      this.eventHistory = []
+      this.eventCache = new Map()
+      this.isDestroyed = false
+
+      // Register with global hook
+      globalHook.addInstance(this)
+      
+      this.logger.info(`WebSocket instance ${this.id} created`)
+      this._initialized = true
+    }
+
     /**
-     * Process a WebSocket message
+     * Destroy this instance and clean up resources
      */
-    processMessage(message) {
+    destroy() {
+      if (this.isDestroyed) return
+      
+      this.isDestroyed = true
+      globalHook.removeInstance(this)
+      this.emitter.offAll()
+      this.eventHistory = []
+      this.eventCache.clear()
+      this.queue.clear()
+      this.monitor.reset()
+      
+      this.logger.info(`WebSocket instance ${this.id} destroyed`)
+    }
+
+    /**
+     * Check if this instance is ready to receive events
+     */
+    isReady() {
+      return !this.isDestroyed && globalHook.isHooked
+    }
+
+    /**
+     * Receive a message from the global hook (already parsed)
+     */
+    receiveMessage(eventType, data, timestamp) {
+      if (this.isDestroyed) return
+      
       const startTime = utils.now()
 
       try {
-        // Quick type check for performance
-        if (typeof message !== 'string' || message.length < 2) {
-          return
-        }
-
-        // Quick JSON check
-        if (message[0] !== '{' && message[0] !== '[') {
-          return
-        }
-
-        // Pre-filtering for performance (check if message contains "type" field)
-        if (this.config.preParsing && !message.includes('"type"')) {
-          return
-        }
-
-        // Parse JSON
-        const data = utils.safeParse(message)
-        if (!data || !data.type) {
-          return
-        }
-
         // Check blacklist
-        if (this.config.eventBlacklist.includes(data.type)) {
+        if (this.config.eventBlacklist.includes(eventType)) {
           this.monitor.recordDropped()
           return
         }
@@ -799,7 +874,7 @@
         // Check whitelist
         if (
           this.config.eventWhitelist.length > 0 &&
-          !this.config.eventWhitelist.includes(data.type)
+          !this.config.eventWhitelist.includes(eventType)
         ) {
           this.monitor.recordDropped()
           return
@@ -807,22 +882,22 @@
 
         // Add to queue for batch processing
         this.queue.add({
-          type: data.type,
+          type: eventType,
           data: data,
-          timestamp: Date.now(),
+          timestamp: timestamp,
         })
 
         // Record for discovery
         if (this.config.enableDiscovery || this.discovery.isDiscovering) {
-          this.discovery.record(data.type, data)
+          this.discovery.record(eventType, data)
         }
 
         // Record performance metrics
         const processingTime = utils.now() - startTime
-        this.monitor.recordEvent(data.type, processingTime)
+        this.monitor.recordEvent(eventType, processingTime)
       } catch (error) {
         this.monitor.recordError()
-        this.logger.error('Error processing message:', error)
+        this.logger.error(`Error processing event ${eventType}:`, error)
       }
     }
 
@@ -887,10 +962,15 @@
       this.discovery.config = this.config
       this.queue.updateConfig(this.config)
 
-      this.logger.info('Configuration updated:', {
+      this.logger.info(`Instance ${this.id} configuration updated:`, {
         ...options,
         _batchIntervalChanged: oldConfig.batchInterval !== this.config.batchInterval
       })
+      
+      // Extra warning for default instance
+      if (this === instanceManager.defaultInstance) {
+        this.logger.warn(`Default instance configuration changed - this affects all addons using the shared instance`)
+      }
     }
 
     getConfig() {
@@ -913,23 +993,61 @@
       this.eventCache.clear()
       this.queue.clear()
       this.monitor.reset()
-      this.logger.info('All data cleared')
+      this.logger.info(`Instance ${this.id} data cleared`)
     }
   }
+
+  // ============================================================================
+  // Instance Manager
+  // ============================================================================
+
+  class InstanceManager {
+    constructor() {
+      this.instances = new Map()
+      this.defaultInstance = null
+    }
+
+    createInstance(config = {}) {
+      const instance = new WebSocketHookInstance(config)
+      this.instances.set(instance.id, instance)
+      return instance
+    }
+
+    getDefaultInstance() {
+      if (!this.defaultInstance) {
+        this.defaultInstance = this.createInstance()
+      }
+      return this.defaultInstance
+    }
+
+    destroyInstance(instanceOrId) {
+      const id = typeof instanceOrId === 'string' ? instanceOrId : instanceOrId.id
+      const instance = this.instances.get(id)
+      if (instance) {
+        instance.destroy()
+        this.instances.delete(id)
+        if (instance === this.defaultInstance) {
+          this.defaultInstance = null
+        }
+      }
+    }
+
+    destroyAll() {
+      this.instances.forEach(instance => instance.destroy())
+      this.instances.clear()
+      this.defaultInstance = null
+    }
+  }
+
+  const instanceManager = new InstanceManager()
 
   // ============================================================================
   // Public API
   // ============================================================================
 
-  const manager = new WebSocketHookManager()
-
-  // Auto-install hook when first listener is added
-  let autoHookInstalled = false
-  const ensureHook = () => {
-    if (!autoHookInstalled) {
-      manager.installHook()
-      autoHookInstalled = true
-    }
+  // Helper to get or create default instance
+  const getDefaultInstance = () => {
+    return instanceManager.getDefaultInstance()
   }
 
   /**
@@ -969,7 +1087,97 @@
     _initialized: true,
 
     /**
-     * Subscribe to one or more WebSocket events
+     * Create a new isolated WebSocket instance
+     * Each instance has its own configuration, listeners, and processing queue
+     * @param {ConfigOptions} [config] - Configuration options for this instance
+     * @returns {Object} New WebSocket instance with its own API
+     * @example
+     * // Create instance with custom configuration
+     * const myWebSocket = MWIWebSocket.createInstance({
+     *   batchInterval: 30000, // 30 second batching
+     *   debug: true,
+     *   eventWhitelist: ['init_character_data', 'items_updated']
+     * });
+     *
+     * // Use the instance
+     * myWebSocket.on('items_updated', (eventType, data) => {
+     *   console.log('Items updated:', data);
+     * });
+     */
+    createInstance(config = {}) {
+      const instance = instanceManager.createInstance(config)
+      
+      // Return public API for this instance
+      return {
+        // Instance info
+        id: instance.id,
+        version: VERSION,
+        
+        // Event management
+        on: (eventTypes, callback) => instance.emitter.on(eventTypes, callback),
+        once: (eventType, callback) => instance.emitter.once(eventType, callback),
+        off: (eventTypes, callback) => instance.emitter.off(eventTypes, callback),
+        offAll: (eventType) => instance.emitter.offAll(eventType),
+        emit: (eventType, data) => instance.emitter.emit(eventType, data),
+        
+        // Discovery and history
+        discover: async (duration = 60000) => {
+          const oldConfig = instance.config.enableDiscovery
+          instance.configure({ enableDiscovery: true })
+          const results = await instance.discovery.start(duration)
+          instance.configure({ enableDiscovery: oldConfig })
+          return results
+        },
+        getEventHistory: (limit) => instance.getEventHistory(limit),
+        getCachedEvent: (eventType) => instance.getCachedEvent(eventType),
+        
+        // Configuration
+        configure: (options) => instance.configure(options),
+        getConfig: () => instance.getConfig(),
+        
+        // Metrics and status
+        getMetrics: () => instance.monitor.getMetrics(),
+        resetMetrics: () => instance.monitor.reset(),
+        getEventCount: (eventType) => {
+          if (eventType) {
+            return instance.monitor.metrics.eventsPerType.get(eventType) || 0
+          }
+          return instance.monitor.metrics.totalEvents
+        },
+        listenerCount: (eventType) => instance.emitter.listenerCount(eventType),
+        getEventTypes: () => instance.emitter.eventNames(),
+        
+        // Status
+        isReady: () => instance.isReady(),
+        waitForReady: () => {
+          return new Promise((resolve) => {
+            if (instance.isReady()) {
+              resolve()
+            } else {
+              // Wait for global hook to be ready
+              setTimeout(resolve, 100)
+            }
+          })
+        },
+        
+        // Cleanup
+        clear: () => instance.clear(),
+        destroy: () => {
+          instanceManager.destroyInstance(instance)
+        },
+        
+        // Debug helpers
+        enableProfiling: (enabled) => {
+          instance.configure({
+            debug: enabled,
+            logLevel: enabled ? 'debug' : 'warn',
+          })
+        }
+      }
+    },
+
+    /**
+     * Subscribe to one or more WebSocket events (using default instance)
      * @param {string|string[]} eventTypes - Event type(s) to listen for. Supports wildcards (e.g., 'action_*')
      * @param {Function} callback - Function to call when event is received. Receives (eventType, data)
      * @returns {Function} Unsubscribe function - call this to remove the listener
@@ -995,12 +1203,11 @@
      * });
      */
     on(eventTypes, callback) {
-      ensureHook()
-      return manager.emitter.on(eventTypes, callback)
+      return getDefaultInstance().emitter.on(eventTypes, callback)
     },
 
     /**
-     * Subscribe to an event only once
+     * Subscribe to an event only once (using default instance)
      * @param {string} eventType - Event type to listen for
      * @param {Function} callback - Function to call when event is received. Receives (eventType, data)
      * @returns {Function} Unsubscribe function - call this to remove the listener
@@ -1010,12 +1217,11 @@
      * });
      */
     once(eventType, callback) {
-      ensureHook()
-      return manager.emitter.once(eventType, callback)
+      return getDefaultInstance().emitter.once(eventType, callback)
     },
 
     /**
-     * Unsubscribe from one or more events
+     * Unsubscribe from one or more events (using default instance)
      * @param {string|string[]} eventTypes - Event type(s) to unsubscribe from
      * @param {Function} callback - The exact callback function that was used to subscribe
      * @example
@@ -1025,11 +1231,11 @@
      * MWIWebSocket.off('items_updated', handler);
      */
     off(eventTypes, callback) {
-      return manager.emitter.off(eventTypes, callback)
+      return getDefaultInstance().emitter.off(eventTypes, callback)
     },
 
     /**
-     * Remove all listeners for an event or all events
+     * Remove all listeners for an event or all events (using default instance)
      * @param {string} [eventType] - Optional event type. If not provided, removes ALL listeners
      * @example
      * // Remove all listeners for a specific event
@@ -1040,11 +1246,11 @@
      * MWIWebSocket.offAll();
      */
     offAll(eventType) {
-      return manager.emitter.offAll(eventType)
+      return getDefaultInstance().emitter.offAll(eventType)
     },
 
     /**
-     * Manually emit an event (for testing/debugging)
+     * Manually emit an event (for testing/debugging) (using default instance)
      * @param {string} eventType - Event type to emit
      * @param {*} data - Event data to send to listeners
      * @returns {number} Number of listeners that received the event
@@ -1053,11 +1259,11 @@
      * MWIWebSocket.emit('test_event', { test: true });
      */
     emit(eventType, data) {
-      return manager.emitter.emit(eventType, data)
+      return getDefaultInstance().emitter.emit(eventType, data)
     },
 
     /**
-     * Discover WebSocket events for a specified duration
+     * Discover WebSocket events for a specified duration (using default instance)
      * @param {number} [duration=60000] - How long to run discovery in milliseconds
      * @returns {Promise<DiscoveryResult[]>} Promise resolving to array of discovered events
      * @example
@@ -1068,18 +1274,18 @@
      * });
      */
     async discover(duration = 60000) {
-      ensureHook()
-      const oldConfig = manager.config.enableDiscovery
-      manager.configure({ enableDiscovery: true })
+      const instance = getDefaultInstance()
+      const oldConfig = instance.config.enableDiscovery
+      instance.configure({ enableDiscovery: true })
 
-      const results = await manager.discovery.start(duration)
+      const results = await instance.discovery.start(duration)
 
-      manager.configure({ enableDiscovery: oldConfig })
+      instance.configure({ enableDiscovery: oldConfig })
       return results
     },
 
     /**
-     * Get event history
+     * Get event history (using default instance)
      * @param {number} [limit] - Optional limit on number of events to return
      * @returns {EventHistoryEntry[]} Array of historical events
      * @example
@@ -1091,22 +1297,22 @@
      * const allEvents = MWIWebSocket.getEventHistory();
      */
     getEventHistory(limit) {
-      return manager.getEventHistory(limit)
+      return getDefaultInstance().getEventHistory(limit)
     },
 
     /**
-     * Get all registered event types (that have listeners)
+     * Get all registered event types (that have listeners) (using default instance)
      * @returns {string[]} Array of event type names
      * @example
      * const eventTypes = MWIWebSocket.getEventTypes();
      * console.log('Currently listening for:', eventTypes);
      */
     getEventTypes() {
-      return manager.emitter.eventNames()
+      return getDefaultInstance().emitter.eventNames()
     },
 
     /**
-     * Get count of events processed
+     * Get count of events processed (using default instance)
      * @param {string} [eventType] - Optional event type to get count for
      * @returns {number} Number of events processed
      * @example
@@ -1118,14 +1324,15 @@
      * const itemUpdates = MWIWebSocket.getEventCount('items_updated');
      */
     getEventCount(eventType) {
+      const instance = getDefaultInstance()
       if (eventType) {
-        return manager.monitor.metrics.eventsPerType.get(eventType) || 0
+        return instance.monitor.metrics.eventsPerType.get(eventType) || 0
       }
-      return manager.monitor.metrics.totalEvents
+      return instance.monitor.metrics.totalEvents
     },
 
     /**
-     * Get cached event data for a specific event type
+     * Get cached event data for a specific event type (using default instance)
      * @param {string} eventType - Event type to get cached data for
      * @returns {EventHistoryEntry|undefined} Cached event data or undefined if not found
      * @example
@@ -1136,11 +1343,11 @@
      * }
      */
     getCachedEvent(eventType) {
-      return manager.getCachedEvent(eventType)
+      return getDefaultInstance().getCachedEvent(eventType)
     },
 
     /**
-     * Get performance metrics
+     * Get performance metrics (using default instance)
      * @returns {PerformanceMetrics} Performance metrics object
      * @example
      * const metrics = MWIWebSocket.getMetrics();
@@ -1149,21 +1356,21 @@
      * console.log(`Events per second: ${metrics.eventsPerSecond}`);
      */
     getMetrics() {
-      return manager.monitor.getMetrics()
+      return getDefaultInstance().monitor.getMetrics()
     },
 
     /**
-     * Reset performance metrics
+     * Reset performance metrics (using default instance)
      * @example
      * // Reset all performance counters
      * MWIWebSocket.resetMetrics();
      */
     resetMetrics() {
-      manager.monitor.reset()
+      getDefaultInstance().monitor.reset()
     },
 
     /**
-     * Enable or disable profiling/debug mode
+     * Enable or disable profiling/debug mode (using default instance)
      * @param {boolean} enabled - Whether to enable profiling
      * @example
      * // Enable debug logging
@@ -1173,14 +1380,16 @@
      * MWIWebSocket.enableProfiling(false);
      */
     enableProfiling(enabled) {
-      manager.configure({
+      getDefaultInstance().configure({
         debug: enabled,
         logLevel: enabled ? 'debug' : 'warn',
       })
     },
 
     /**
-     * Configure the library
+     * Configure the library (using default instance)
+     * ⚠️  WARNING: This affects ALL addons using the shared default instance.
+     * For isolated configuration, use MWIWebSocket.createInstance() instead.
      * @param {ConfigOptions} options - Configuration options to apply
      * @example
      * MWIWebSocket.configure({
@@ -1191,18 +1400,23 @@
      * });
      */
     configure(options) {
-      manager.configure(options)
+      // Warn about potential conflicts
+      console.warn(
+        `[${LIBRARY_NAME}] WARNING: configure() affects ALL addons using the shared instance. ` +
+        `Consider using MWIWebSocket.createInstance() for isolated configuration.`
+      )
+      getDefaultInstance().configure(options)
     },
 
     /**
-     * Get current configuration
+     * Get current configuration (using default instance)
      * @returns {ConfigOptions} Current configuration object
      * @example
      * const config = MWIWebSocket.getConfig();
      * console.log('Debug mode:', config.debug);
      */
     getConfig() {
-      return manager.getConfig()
+      return getDefaultInstance().getConfig()
     },
 
     /**
@@ -1214,7 +1428,7 @@
      * }
      */
     isReady() {
-      return manager.isHooked
+      return globalHook.isHooked
     },
 
     /**
@@ -1226,10 +1440,11 @@
      */
     waitForReady() {
       return new Promise((resolve) => {
-        if (manager.isHooked) {
+        if (globalHook.isHooked) {
           resolve()
         } else {
-          ensureHook()
+          // Trigger default instance creation to install hook
+          getDefaultInstance()
           // Give hook time to install
           setTimeout(resolve, 100)
         }
@@ -1237,7 +1452,7 @@
     },
 
     /**
-     * Get number of listeners for an event
+     * Get number of listeners for an event (using default instance)
      * @param {string} [eventType] - Optional event type. If not provided, returns total listeners
      * @returns {number} Number of listeners
      * @example
@@ -1249,54 +1464,70 @@
      * const totalListeners = MWIWebSocket.listenerCount();
      */
     listenerCount(eventType) {
-      return manager.emitter.listenerCount(eventType)
+      return getDefaultInstance().emitter.listenerCount(eventType)
     },
 
     /**
      * Manually install the WebSocket hook (advanced usage)
-     * Note: This is usually done automatically when you add the first listener
+     * Note: This is usually done automatically when you create the first instance
      * @example
      * MWIWebSocket.installHook();
      */
     installHook() {
-      manager.installHook()
-      autoHookInstalled = true
+      globalHook.installHook()
     },
 
     /**
      * Manually remove the WebSocket hook (advanced usage)
-     * Warning: This will stop ALL event processing
+     * Warning: This will stop ALL event processing for ALL instances
      * @example
      * MWIWebSocket.removeHook();
      */
     removeHook() {
-      manager.removeHook()
-      autoHookInstalled = false
+      globalHook.removeHook()
     },
 
     /**
-     * Clear all cached data and history
+     * Clear all cached data and history (using default instance)
      * Does NOT remove listeners
      * @example
      * // Clear all cached events and history
      * MWIWebSocket.clear();
      */
     clear() {
-      manager.clear()
+      getDefaultInstance().clear()
     },
 
     /**
-     * Completely destroy the library instance
-     * Removes hook, clears all listeners and data
+     * Destroy all instances and remove global hook
+     * Warning: This affects ALL addons using the library
      * @example
-     * // Complete cleanup
+     * // Complete cleanup of everything
      * MWIWebSocket.destroy();
      */
     destroy() {
-      manager.removeHook()
-      manager.emitter.offAll()
-      manager.clear()
-      autoHookInstalled = false
+      instanceManager.destroyAll()
+      globalHook.removeHook()
+    },
+
+    /**
+     * Get information about all active instances
+     * @returns {Object} Instance information for debugging
+     * @example
+     * const info = MWIWebSocket.getInstanceInfo();
+     * console.log(`Active instances: ${info.count}`);
+     */
+    getInstanceInfo() {
+      return {
+        count: instanceManager.instances.size,
+        instances: Array.from(instanceManager.instances.values()).map(instance => ({
+          id: instance.id,
+          config: instance.getConfig(),
+          listenerCount: instance.emitter.listenerCount(),
+          eventCount: instance.monitor.metrics.totalEvents
+        })),
+        globalHookInstalled: globalHook.isHooked
+      }
     },
   }
 
@@ -1318,8 +1549,12 @@
     })
   }
 
-  // Log initialization
+  // Log initialization with guidance
   console.log(
-    `[${LIBRARY_NAME}] v${VERSION} loaded successfully. Use MWIWebSocket.on() to subscribe to events.`
+    `[${LIBRARY_NAME}] v${VERSION} loaded successfully.\n` +
+    `\n📜 USAGE GUIDE:\n` +
+    `• NEW: Use MWIWebSocket.createInstance() for isolated addon configurations\n` +
+    `• LEGACY: MWIWebSocket.on() uses shared instance (may conflict with other addons)\n` +
+    `\n📝 Learn more: https://github.com/mathewcst/mwi-moonitoring`
   )
 })(typeof window !== 'undefined' ? window : this)

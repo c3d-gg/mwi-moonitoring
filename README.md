@@ -1,6 +1,8 @@
 # MWI Moonitoring 🌙
 
-High-performance **READ-ONLY** WebSocket event library for Milky Way Idle addon development. Zero configuration, maximum performance, no conflicts.
+High-performance **READ-ONLY** WebSocket event library for Milky Way Idle addon development. Designed for multiple addons to work together without conflicts.
+
+🆕 **NEW in v0.2.0**: **Isolated Instances** - Each addon can now have its own configuration without affecting others!
 
 > ⚠️ **IMPORTANT: Game TOS Compliance**  
 > This library is **READ-ONLY** and only monitors WebSocket messages. It does NOT and CANNOT send messages to the game server.  
@@ -22,8 +24,9 @@ With this **READ-ONLY** library, developers can create:
 ## Features
 
 - 🚀 **High Performance** - Event batching, pre-filtering, and lazy parsing
+- 🛡️ **Isolated Instances** - Each addon gets its own configuration and listeners
 - 🔌 **Plug & Play** - Works immediately with zero configuration
-- 🛡️ **Non-Blocking** - Multiple addons can use it simultaneously without conflicts
+- 🔄 **Backward Compatible** - Existing addons continue to work unchanged
 - 🔍 **Event Discovery** - Automatically discover new game events
 - 📊 **Performance Monitoring** - Built-in metrics and profiling
 - 🎯 **TypeScript Support** - Full type definitions included
@@ -45,7 +48,7 @@ With this **READ-ONLY** library, developers can create:
 // @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=
 
 // Option 3: Specific version (most stable)
-// @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library-v0.1.1.min.js
+// @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library-v0.2.0.min.js
 // ==/UserScript==
 ```
 
@@ -61,7 +64,7 @@ With this **READ-ONLY** library, developers can create:
 |------|-------------|-------------|
 | `mwi-moonitoring-library.min.js` | Minified, latest | Production |
 | `mwi-moonitoring-library.js` | Full source, latest | Debugging |
-| `mwi-moonitoring-library-v0.1.1.min.js` | Version locked | Stable deployment |
+| `mwi-moonitoring-library-v0.2.0.min.js` | Version locked | Stable deployment |
 
 ### Local Development
 
@@ -70,13 +73,16 @@ For local testing:
 // @require file:///path/to/mwi-moonitoring-library.js
 ```
 
-## Quick Start
+## 🚨 IMPORTANT: Multiple Addon Support
+
+**Are you creating an addon that others will use alongside other addons?** Use the new isolated instances to prevent conflicts:
+
+### ✅ Recommended: Isolated Instances (v0.2.0+)
 
 ```javascript
 // ==UserScript==
 // @name         My MWI Addon
 // @match        https://www.milkywayidle.com/*
-// @match        https://test.milkywayidle.com/*
 // @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js
 // @grant        none
 // ==/UserScript==
@@ -84,25 +90,93 @@ For local testing:
 (function() {
     'use strict';
     
-    // Listen for character initialization
-    MWIWebSocket.on('init_character_data', (eventType, data) => {
+    // Create your own isolated instance
+    const myWebSocket = MWIWebSocket.createInstance({
+        batchInterval: 30000,  // Your settings won't affect other addons
+        debug: true,
+        eventWhitelist: ['init_character_data', 'items_updated']
+    });
+    
+    // Use your isolated instance
+    myWebSocket.on('init_character_data', (eventType, data) => {
         console.log(`Welcome, ${data.character.name}!`);
-        console.log(`Level: ${data.characterSkills.find(s => s.skillHrid === '/skills/total_level')?.level}`);
     });
     
-    // Listen for inventory changes
-    MWIWebSocket.on('items_updated', (eventType, data) => {
-        console.log('Inventory updated:', data.characterItems.length, 'items');
-    });
-    
-    // Listen for multiple events
-    MWIWebSocket.on(['action_started', 'action_completed'], (eventType, data) => {
-        console.log(`Action event: ${eventType}`);
+    myWebSocket.on('items_updated', (eventType, data) => {
+        console.log('My addon: Inventory updated');
     });
 })();
 ```
 
+### ⚠️ Legacy: Shared Instance (Backward Compatible)
+
+```javascript
+// This still works but shares configuration with all other addons using the old API
+(function() {
+    'use strict';
+    
+    // ⚠️ WARNING: These settings affect ALL addons using the shared instance
+    MWIWebSocket.configure({ batchInterval: 5000 }); // Might conflict!
+    
+    MWIWebSocket.on('items_updated', (eventType, data) => {
+        console.log('Legacy addon: Inventory updated');
+    });
+})();
+```
+
+## Why Use Isolated Instances?
+
+**Problem**: Multiple addons sharing configuration
+```javascript
+// Addon A sets 30-second batching
+MWIWebSocket.configure({ batchInterval: 30000 });
+
+// Addon B overwrites it with 1-second batching  
+MWIWebSocket.configure({ batchInterval: 1000 }); // ❌ Conflicts!
+```
+
+**Solution**: Each addon gets its own instance
+```javascript
+// Addon A - isolated
+const addonA = MWIWebSocket.createInstance({ batchInterval: 30000 });
+
+// Addon B - isolated  
+const addonB = MWIWebSocket.createInstance({ batchInterval: 1000 });
+
+// ✅ No conflicts! Each addon has its own settings
+```
+```
+
 ## API Reference
+
+### Creating Instances
+
+#### `MWIWebSocket.createInstance([config])` 🆕
+Create an isolated instance with its own configuration and listeners.
+
+```javascript
+// Create instance with custom config
+const myWebSocket = MWIWebSocket.createInstance({
+    batchInterval: 30000,
+    debug: true,
+    eventWhitelist: ['init_character_data', 'items_updated']
+});
+
+// Each instance has the full API
+myWebSocket.on('items_updated', handler);
+myWebSocket.configure({ debug: false });
+myWebSocket.getMetrics();
+
+// Clean up when done
+myWebSocket.destroy();
+```
+
+**Instance Properties:**
+- `id` - Unique instance identifier
+- `version` - Library version
+- All API methods listed below
+
+### Global API (Shared Instance)
 
 ### Event Subscription
 
@@ -198,8 +272,23 @@ MWIWebSocket.enableProfiling(false); // Disable
 #### `configure(options)`
 Customize library behavior.
 
+⚠️ **WARNING**: Using the global `configure()` affects ALL addons using the shared instance. For isolated configuration, create an instance with `createInstance()`.
+
 ```javascript
+// ❌ Affects all addons using shared instance
 MWIWebSocket.configure({
+    batchInterval: 30000  // This changes it for everyone!
+});
+
+// ✅ Only affects your addon
+const myWebSocket = MWIWebSocket.createInstance({
+    batchInterval: 30000  // Isolated to your addon
+});
+```
+
+**Configuration Options:**
+```javascript
+{
     // Performance
     enableBatching: true,        // Batch events (default: true)
     batchInterval: 100,          // ms between batches (default: 100)
@@ -220,7 +309,7 @@ MWIWebSocket.configure({
     // Memory
     historySize: 50,            // Events to keep in history
     enableCache: true,          // Cache parsed events
-});
+};
 ```
 
 ### Utilities
@@ -316,10 +405,17 @@ console.log('Library ready!');
 (function() {
     'use strict';
     
+    // Create isolated instance for this addon
+    const alertSystem = MWIWebSocket.createInstance({
+        batchInterval: 5000, // Check every 5 seconds
+        eventWhitelist: ['items_updated'], // Only track inventory
+        debug: false
+    });
+    
     const TRACKED_ITEMS = ['/items/milk', '/items/butter', '/items/egg'];
     const MAX_QUANTITY = 10000;
     
-    MWIWebSocket.on('items_updated', (eventType, data) => {
+    alertSystem.on('items_updated', (eventType, data) => {
         const overflowing = data.characterItems.filter(item => 
             TRACKED_ITEMS.includes(item.itemHrid) && item.count > MAX_QUANTITY
         );
@@ -350,16 +446,24 @@ console.log('Library ready!');
 (function() {
     'use strict';
     
+    // Create isolated instance for action tracking
+    const actionTracker = MWIWebSocket.createInstance({
+        batchInterval: 1000, // Quick response for action timing
+        eventWhitelist: ['action_started', 'action_completed'],
+        debug: true,
+        logLevel: 'info'
+    });
+    
     let actionStartTime = null;
     let totalActions = 0;
     let totalTime = 0;
     
-    MWIWebSocket.on('action_started', (eventType, data) => {
+    actionTracker.on('action_started', (eventType, data) => {
         actionStartTime = Date.now();
         console.log('Action started:', data.actionHrid);
     });
     
-    MWIWebSocket.on('action_completed', (eventType, data) => {
+    actionTracker.on('action_completed', (eventType, data) => {
         if (actionStartTime) {
             const duration = Date.now() - actionStartTime;
             totalActions++;
@@ -374,11 +478,11 @@ console.log('Library ready!');
 })();
 ```
 
-### Inventory Monitor
+### Multi-Addon Compatibility Example
 
 ```javascript
 // ==UserScript==
-// @name         MWI Inventory Monitor
+// @name         MWI Rare Item Notifier
 // @match        https://www.milkywayidle.com/*
 // @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js
 // @grant        GM_notification
@@ -387,33 +491,71 @@ console.log('Library ready!');
 (function() {
     'use strict';
     
-    const VALUABLE_ITEMS = ['/items/diamond', '/items/ruby', '/items/emerald'];
+    // Each addon creates its own isolated instance
+    const rareItemMonitor = MWIWebSocket.createInstance({
+        batchInterval: 10000, // Check every 10 seconds
+        eventWhitelist: ['items_updated'], // Only inventory events
+        debug: false,
+        historySize: 10 // Keep minimal history
+    });
     
-    MWIWebSocket.on('items_updated', (eventType, data) => {
-        const valuable = data.characterItems.filter(item => 
-            VALUABLE_ITEMS.includes(item.itemHrid)
+    const RARE_ITEMS = ['/items/diamond', '/items/ruby', '/items/emerald'];
+    let lastNotification = {};
+    
+    rareItemMonitor.on('items_updated', (eventType, data) => {
+        const rareItems = data.characterItems.filter(item => 
+            RARE_ITEMS.includes(item.itemHrid) && item.count > 0
         );
         
-        valuable.forEach(item => {
-            if (item.count > 0) {
+        rareItems.forEach(item => {
+            // Prevent spam notifications
+            if (lastNotification[item.itemHrid] !== item.count) {
                 GM_notification({
-                    title: 'Valuable Item!',
-                    text: `You have ${item.count} ${item.itemHrid}`,
-                    timeout: 5000
+                    title: 'Rare Item Detected!',
+                    text: `${item.count} × ${item.itemHrid.replace('/items/', '')}`,
+                    timeout: 3000
                 });
+                lastNotification[item.itemHrid] = item.count;
             }
         });
+    });
+    
+    // Cleanup when script is disabled (optional)
+    window.addEventListener('beforeunload', () => {
+        rareItemMonitor.destroy();
     });
 })();
 ```
 
 ## Performance Tips
 
-1. **Use Event Filtering**: Configure whitelists to only process events you need
-2. **Batch Processing**: Keep batching enabled for better performance
-3. **Limit History**: Reduce `historySize` if you don't need event history
-4. **Clean Up**: Always call `offAll()` when your addon is disabled
-5. **Use Wildcards Sparingly**: Specific event names are faster than wildcards
+### For Addon Developers
+
+1. **Use Isolated Instances**: Create your own instance to avoid conflicts
+2. **Configure Filtering**: Use `eventWhitelist` to only process events you need
+3. **Optimize Batching**: Adjust `batchInterval` for your addon's needs
+4. **Limit Memory Usage**: Reduce `historySize` and `cacheSize` if not needed
+5. **Clean Up**: Call `instance.destroy()` when your addon is disabled
+6. **Use Specific Events**: Avoid wildcards when possible
+
+### Multi-Addon Scenarios
+
+```javascript
+// ✅ Good: Each addon optimized independently
+const fastAddon = MWIWebSocket.createInstance({
+    batchInterval: 100,     // Fast response needed
+    eventWhitelist: ['action_completed']
+});
+
+const slowAddon = MWIWebSocket.createInstance({
+    batchInterval: 30000,   // Batch for 30 seconds
+    eventWhitelist: ['items_updated']
+});
+
+// ❌ Bad: Shared instance with conflicting needs
+MWIWebSocket.configure({ batchInterval: 100 });   // Fast addon sets this
+MWIWebSocket.configure({ batchInterval: 30000 }); // Slow addon overwrites it
+```
 
 ## Troubleshooting
 
@@ -425,44 +567,93 @@ console.log('MWI Moonitoring version:', MWIWebSocket.version);
 // Check if hook is installed
 console.log('Is ready:', MWIWebSocket.isReady());
 
-// Enable debug mode
+// Get instance information
+console.log('Instance info:', MWIWebSocket.getInstanceInfo());
+
+// Enable debug mode (affects all addons using shared instance)
 MWIWebSocket.enableProfiling(true);
+
+// Or enable debug for your instance only
+const myWebSocket = MWIWebSocket.createInstance({ debug: true });
 ```
 
 ### Not receiving events?
 ```javascript
-// Check listener count
-console.log('Listeners:', MWIWebSocket.listenerCount());
+// For shared instance
+console.log('Shared listeners:', MWIWebSocket.listenerCount());
+console.log('Shared event types:', MWIWebSocket.getEventTypes());
 
-// Check event types
-console.log('Event types:', MWIWebSocket.getEventTypes());
+// For your isolated instance
+const myWebSocket = MWIWebSocket.createInstance();
+console.log('My listeners:', myWebSocket.listenerCount());
+console.log('My event types:', myWebSocket.getEventTypes());
 
 // Discover events
-const events = await MWIWebSocket.discover(30000);
+const events = await myWebSocket.discover(30000);
 console.log('Discovered:', events);
 ```
 
 ### Performance issues?
 ```javascript
-// Check metrics
-const metrics = MWIWebSocket.getMetrics();
-console.log('Metrics:', metrics);
+// Check global instance info
+const info = MWIWebSocket.getInstanceInfo();
+console.log('Active instances:', info.count);
+console.log('Global hook installed:', info.globalHookInstalled);
 
-// Optimize configuration
-MWIWebSocket.configure({
+// Check metrics for your instance
+const myWebSocket = MWIWebSocket.createInstance();
+const metrics = myWebSocket.getMetrics();
+console.log('My metrics:', metrics);
+
+// Optimize your instance (doesn't affect others)
+myWebSocket.configure({
     eventWhitelist: ['items_updated'], // Only needed events
     historySize: 10,                   // Reduce history
-    cacheSize: 20                      // Reduce cache
+    cacheSize: 20,                     // Reduce cache
+    batchInterval: 5000                // Batch for 5 seconds
 });
 ```
+
+## Migration Guide
+
+### Upgrading from v0.1.x to v0.2.0
+
+Your existing code will continue to work, but you should migrate to isolated instances:
+
+#### Before (v0.1.x)
+```javascript
+// Old way - shared configuration
+MWIWebSocket.configure({ batchInterval: 30000 });
+MWIWebSocket.on('items_updated', handler);
+```
+
+#### After (v0.2.0+)
+```javascript
+// New way - isolated instance
+const myWebSocket = MWIWebSocket.createInstance({ 
+    batchInterval: 30000 
+});
+myWebSocket.on('items_updated', handler);
+```
+
+#### Benefits of Migration
+- ✅ No configuration conflicts with other addons
+- ✅ Independent performance tuning
+- ✅ Cleaner debugging (separate metrics per addon)
+- ✅ Better memory management
 
 ## Browser Compatibility
 
 - ✅ Chrome/Chromium (recommended)
 - ✅ Firefox
 - ✅ Edge
-- ✅ Opera
+- ✅ Opera  
 - ⚠️ Safari (limited testing)
+
+**Tampermonkey Compatibility:**
+- ✅ Tampermonkey (all browsers)
+- ✅ Greasemonkey (Firefox)
+- ✅ Violentmonkey (all browsers)
 
 ## Contributing
 
@@ -480,8 +671,10 @@ MIT License - See [LICENSE](LICENSE) file for details
 ## Support
 
 - 🐛 [Report Issues](https://github.com/mathewcst/mwi-moonitoring/issues)
-- 💬 [Discussions](https://github.com/mathewcst/mwi-moonitoring/discussions)
+- 💬 [Discussions](https://github.com/mathewcst/mwi-moonitoring/discussions)  
 - 📖 [Documentation](https://github.com/mathewcst/mwi-moonitoring/wiki)
+- 🔄 [Migration Guide](https://github.com/mathewcst/mwi-moonitoring/wiki/Migration-Guide)
+- 🤝 [Multi-Addon Best Practices](https://github.com/mathewcst/mwi-moonitoring/wiki/Multi-Addon-Guide)
 
 ---
 
