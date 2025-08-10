@@ -5,10 +5,9 @@ on:
     branches:
       - main
       - master
-    paths:
-      - 'mwi-moonitoring-library.js'
-      - 'mwi-moonitoring.d.ts'
-      - '.github/workflows/deploy-to-r2.yml'
+    tags:
+      - 'v*'
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
   deploy:
@@ -28,18 +27,28 @@ jobs:
           npm install -g terser
           npm install -g typescript
 
-      - name: Create versioned copies
+      - name: Extract and validate version
         run: |
           # Extract version from the library file
           VERSION=$(grep -o "VERSION = '[^']*'" mwi-moonitoring-library.js | cut -d"'" -f2)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           
-          # Create versioned copies
-          cp mwi-moonitoring-library.js mwi-moonitoring-library-v${VERSION}.js
-          cp mwi-moonitoring.d.ts mwi-moonitoring-v${VERSION}.d.ts
+          echo "📦 Detected version: $VERSION"
+          echo "📝 Git ref: ${{ github.ref }}"
+          echo "🏷️ Git tag: ${{ github.ref_name }}"
+          
+          # Validate version format
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            exit 1
+          fi
+          
+          echo "✅ Version validated: $VERSION"
 
-      - name: Minify JavaScript files
+      - name: Generate minified files
         run: |
+          echo "🔨 Generating minified version..."
+          
           # Minify the library file
           terser mwi-moonitoring-library.js \
             --compress \
@@ -48,21 +57,45 @@ jobs:
             --output mwi-moonitoring-library.min.js \
             --comments "/^!|@preserve|@license|@cc_on/i"
           
-          # Create versioned minified copy
+          # Update version in minified file header
+          sed -i "s/@version [0-9]\+\.[0-9]\+\.[0-9]\+/@version ${VERSION}/" mwi-moonitoring-library.min.js
+          
+          echo "✅ Minified file generated"
+          
+      - name: Create all versioned copies
+        run: |
+          echo "📋 Creating versioned copies for v${VERSION}..."
+          
+          # Create versioned copies of all files
+          cp mwi-moonitoring-library.js mwi-moonitoring-library-v${VERSION}.js
           cp mwi-moonitoring-library.min.js mwi-moonitoring-library-v${VERSION}.min.js
+          
+          if [ -f "mwi-moonitoring.d.ts" ]; then
+            cp mwi-moonitoring.d.ts mwi-moonitoring-v${VERSION}.d.ts
+          fi
+          
+          echo "✅ Versioned copies created:"
+          ls -la mwi-moonitoring-library-v${VERSION}*
 
       - name: Generate SRI hashes and manifests
         run: |
-          # Generate hashes
+          echo "🔐 Generating SRI hashes..."
+          
+          # Generate hashes for minified files (both latest and versioned should be identical)
           SHA256_MIN=$(sha256sum mwi-moonitoring-library.min.js | cut -d' ' -f1)
           SHA256_MIN_B64=$(echo -n $SHA256_MIN | xxd -r -p | base64)
           MD5_MIN=$(md5sum mwi-moonitoring-library.min.js | cut -d' ' -f1)
           SIZE_MIN=$(stat -c%s mwi-moonitoring-library.min.js)
           
+          # Generate hashes for full files
           SHA256_FULL=$(sha256sum mwi-moonitoring-library.js | cut -d' ' -f1)
           SHA256_FULL_B64=$(echo -n $SHA256_FULL | xxd -r -p | base64)
           MD5_FULL=$(md5sum mwi-moonitoring-library.js | cut -d' ' -f1)
           SIZE_FULL=$(stat -c%s mwi-moonitoring-library.js)
+          
+          echo "📊 File sizes:"
+          echo "  - Full: $(du -h mwi-moonitoring-library.js | cut -f1)"
+          echo "  - Minified: $(du -h mwi-moonitoring-library.min.js | cut -f1)"
           
           # Generate sri.json
           cat > sri.json << EOF
@@ -141,19 +174,33 @@ jobs:
 
       - name: Prepare upload directory
         run: |
+          echo "📁 Preparing upload directory..."
           mkdir -p upload
-          # Copy only the library files to upload directory
+          
+          # Copy library files to upload directory
+          echo "📄 Copying library files..."
           cp mwi-moonitoring-library.js upload/
           cp mwi-moonitoring-library.min.js upload/
           cp mwi-moonitoring-library-v${VERSION}.js upload/
           cp mwi-moonitoring-library-v${VERSION}.min.js upload/
-          cp mwi-moonitoring.d.ts upload/
-          cp mwi-moonitoring-v${VERSION}.d.ts upload/
+          
+          # Copy type definitions if they exist
+          if [ -f "mwi-moonitoring.d.ts" ]; then
+            cp mwi-moonitoring.d.ts upload/
+            cp mwi-moonitoring-v${VERSION}.d.ts upload/
+          fi
+          
+          # Copy manifest files
           cp manifest.json upload/
           cp sri.json upload/
           
-          echo "Files to upload:"
-          ls -la upload/
+          echo "✅ Upload directory prepared"
+          echo ""
+          echo "📋 Files to upload:"
+          ls -la upload/ | grep -E "(js|json|d\.ts)$"
+          echo ""
+          echo "🔍 Verifying versioned files exist:"
+          ls -la upload/*v${VERSION}* || echo "⚠️ No versioned files found!"
 
       - name: Upload to Cloudflare R2
         uses: ryand56/r2-upload-action@latest
@@ -299,14 +346,16 @@ jobs:
           
           echo "CDN usage documentation created"
 
-      - name: Purge Cloudflare Cache
+      - name: Purge Cloudflare Cache  
         if: success()
         env:
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
+          echo "🧹 Purging Cloudflare cache for updated files..."
+          
           # Purge cache for the latest files only (versioned files are immutable)
-          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+          response=$(curl -s -w "%{http_code}" -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             -H "Content-Type: application/json" \
             --data '{
@@ -317,4 +366,35 @@ jobs:
                 "https://dns.c3d.gg/manifest.json",
                 "https://dns.c3d.gg/sri.json"
               ]
-            }'
+            }')
+          
+          http_code="${response: -3}"
+          response_body="${response%???}"
+          
+          if [ "$http_code" = "200" ]; then
+            echo "✅ Cache purged successfully"
+          else
+            echo "⚠️ Cache purge returned HTTP $http_code"
+            echo "$response_body"
+          fi
+          
+      - name: Deployment Summary
+        if: success()
+        run: |
+          echo "🎉 Deployment completed successfully!"
+          echo ""
+          echo "📦 Version: ${VERSION}"
+          echo "📅 Date: $(date -u)"
+          echo ""
+          echo "🌐 CDN URLs:"
+          echo "  📄 Latest (auto-updates):"
+          echo "    - https://dns.c3d.gg/mwi-moonitoring-library.min.js"
+          echo "    - https://dns.c3d.gg/mwi-moonitoring-library.js"
+          echo ""
+          echo "  🔒 Versioned (immutable):"
+          echo "    - https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js"
+          echo "    - https://dns.c3d.gg/mwi-moonitoring-library-v${VERSION}.js"
+          echo ""
+          echo "  📋 Metadata:"
+          echo "    - https://dns.c3d.gg/sri.json"
+          echo "    - https://dns.c3d.gg/manifest.json"
