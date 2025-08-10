@@ -1,0 +1,272 @@
+name: Deploy to Cloudflare R2
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'mwi-moonitoring.js'
+      - 'mwi-moonitoring-library.js'
+      - 'mwi-moonitoring.d.ts'
+      - '.github/workflows/deploy-to-r2.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install -g terser
+          npm install -g typescript
+
+      - name: Create versioned copies
+        run: |
+          # Extract version from the library file
+          VERSION=$(grep -o "VERSION = '[^']*'" mwi-moonitoring-library.js | cut -d"'" -f2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
+          # Create versioned copies
+          cp mwi-moonitoring-library.js mwi-moonitoring-library-v${VERSION}.js
+          cp mwi-moonitoring.d.ts mwi-moonitoring-v${VERSION}.d.ts
+          
+          # Also copy the original file (with userscript header) if it exists
+          if [ -f "mwi-moonitoring.js" ]; then
+            cp mwi-moonitoring.js mwi-moonitoring-v${VERSION}.js
+          fi
+
+      - name: Minify JavaScript files
+        run: |
+          # Minify the library file
+          terser mwi-moonitoring-library.js \
+            --compress \
+            --mangle \
+            --toplevel \
+            --output mwi-moonitoring-library.min.js \
+            --comments "/^!|@preserve|@license|@cc_on/i"
+          
+          # Create versioned minified copy
+          cp mwi-moonitoring-library.min.js mwi-moonitoring-library-v${VERSION}.min.js
+          
+          # Minify the original file if it exists
+          if [ -f "mwi-moonitoring.js" ]; then
+            terser mwi-moonitoring.js \
+              --compress \
+              --mangle \
+              --toplevel \
+              --output mwi-moonitoring.min.js \
+              --comments "/^!|@preserve|@license|@cc_on/i"
+            
+            cp mwi-moonitoring.min.js mwi-moonitoring-v${VERSION}.min.js
+          fi
+
+      - name: Generate file manifest
+        run: |
+          cat > manifest.json << EOF
+          {
+            "version": "${VERSION}",
+            "updated": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "commit": "${GITHUB_SHA}",
+            "files": {
+              "library": {
+                "full": "mwi-moonitoring-library.js",
+                "minified": "mwi-moonitoring-library.min.js",
+                "versioned": {
+                  "full": "mwi-moonitoring-library-v${VERSION}.js",
+                  "minified": "mwi-moonitoring-library-v${VERSION}.min.js"
+                }
+              },
+              "userscript": {
+                "full": "mwi-moonitoring.js",
+                "minified": "mwi-moonitoring.min.js",
+                "versioned": {
+                  "full": "mwi-moonitoring-v${VERSION}.js",
+                  "minified": "mwi-moonitoring-v${VERSION}.min.js"
+                }
+              },
+              "types": {
+                "latest": "mwi-moonitoring.d.ts",
+                "versioned": "mwi-moonitoring-v${VERSION}.d.ts"
+              }
+            },
+            "cdn": {
+              "base": "https://cdn.mwi-moonitoring.c3d.gg",
+              "recommended": "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js",
+              "stable": "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js"
+            }
+          }
+          EOF
+
+      - name: Upload to Cloudflare R2
+        uses: ryand56/r2-upload-action@latest
+        with:
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: ${{ secrets.R2_BUCKET }}
+          source-dir: ./
+          destination-dir: ./
+          
+      - name: Set cache headers for R2 objects
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          # Install AWS CLI (compatible with R2)
+          pip install awscli
+          
+          # Configure AWS CLI for R2
+          aws configure set aws_access_key_id $R2_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $R2_SECRET_ACCESS_KEY
+          aws configure set region auto
+          
+          # R2 endpoint
+          ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          
+          # Set cache headers for versioned files (cache forever)
+          for file in *-v${VERSION}.*; do
+            if [ -f "$file" ]; then
+              aws s3api copy-object \
+                --endpoint-url $ENDPOINT \
+                --bucket $R2_BUCKET \
+                --copy-source "${R2_BUCKET}/${file}" \
+                --key "${file}" \
+                --metadata-directive REPLACE \
+                --cache-control "public, max-age=31536000, immutable" \
+                --content-type "$(file -b --mime-type $file)"
+            fi
+          done
+          
+          # Set cache headers for latest files (cache for 1 hour)
+          for file in mwi-moonitoring-library.js mwi-moonitoring-library.min.js mwi-moonitoring.js mwi-moonitoring.min.js mwi-moonitoring.d.ts manifest.json; do
+            if [ -f "$file" ]; then
+              aws s3api copy-object \
+                --endpoint-url $ENDPOINT \
+                --bucket $R2_BUCKET \
+                --copy-source "${R2_BUCKET}/${file}" \
+                --key "${file}" \
+                --metadata-directive REPLACE \
+                --cache-control "public, max-age=3600, must-revalidate" \
+                --content-type "$(file -b --mime-type $file)"
+            fi
+          done
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[release]')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          body: |
+            ## MWI Moonitoring Library v${{ env.VERSION }}
+            
+            ### CDN URLs
+            
+            **Recommended (minified, latest):**
+            ```
+            https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js
+            ```
+            
+            **Stable (minified, versioned):**
+            ```
+            https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
+            ```
+            
+            **TypeScript definitions:**
+            ```
+            https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.d.ts
+            ```
+            
+            ### Usage
+            
+            Add this to your userscript header:
+            ```javascript
+            // @require https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js
+            ```
+            
+            Or for a specific version:
+            ```javascript
+            // @require https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library-v${{ env.VERSION }}.min.js
+            ```
+            
+            ### Changes
+            See [commit history](https://github.com/${{ github.repository }}/commits/v${{ env.VERSION }})
+          files: |
+            mwi-moonitoring-library.js
+            mwi-moonitoring-library.min.js
+            mwi-moonitoring-library-v${{ env.VERSION }}.js
+            mwi-moonitoring-library-v${{ env.VERSION }}.min.js
+            mwi-moonitoring.d.ts
+            manifest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update README with CDN links
+        run: |
+          # Create a CDN usage section for README
+          cat > cdn-usage.md << EOF
+          
+          ## CDN Usage
+          
+          The library is available via Cloudflare R2 CDN at \`cdn.mwi-moonitoring.c3d.gg\`.
+          
+          ### Latest Version (auto-updates)
+          \`\`\`javascript
+          // @require https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js
+          \`\`\`
+          
+          ### Specific Version (stable)
+          \`\`\`javascript
+          // @require https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library-v${VERSION}.min.js
+          \`\`\`
+          
+          ### TypeScript Definitions
+          \`\`\`typescript
+          /// <reference path="https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.d.ts" />
+          \`\`\`
+          
+          ### Available Files
+          - \`mwi-moonitoring-library.js\` - Full library (latest)
+          - \`mwi-moonitoring-library.min.js\` - Minified library (latest)
+          - \`mwi-moonitoring-library-v${VERSION}.js\` - Full library (v${VERSION})
+          - \`mwi-moonitoring-library-v${VERSION}.min.js\` - Minified library (v${VERSION})
+          - \`mwi-moonitoring.d.ts\` - TypeScript definitions
+          - \`manifest.json\` - File manifest with version info
+          
+          ### Version: ${VERSION}
+          ### Last Updated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          EOF
+          
+          echo "CDN usage documentation created"
+
+      - name: Purge Cloudflare Cache
+        if: success()
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          # Purge cache for the latest files only (versioned files are immutable)
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "files": [
+                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.js",
+                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js",
+                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.js",
+                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.min.js",
+                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.d.ts",
+                "https://cdn.mwi-moonitoring.c3d.gg/manifest.json"
+              ]
+            }'
