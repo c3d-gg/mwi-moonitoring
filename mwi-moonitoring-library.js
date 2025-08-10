@@ -43,7 +43,7 @@
   // Configuration and Constants
   // ============================================================================
 
-  const VERSION = '0.3.0'
+  const VERSION = '0.4.0'
   const LIBRARY_NAME = 'MWI-Moonitoring'
 
   /**
