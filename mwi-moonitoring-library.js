@@ -1,24 +1,31 @@
 /**
- * MWI Moonitoring - WebSocket Event Library for Milky Way Idle
+ * MWI Moonitoring - READ-ONLY WebSocket Event Library for Milky Way Idle
  * @version 0.1.0
  * @author c3d.gg
  * @license MIT
  * @homepage https://github.com/mathewcst/mwi-moonitoring
  *
+ * ⚠️ TOS COMPLIANCE WARNING:
+ * This library is READ-ONLY and only monitors incoming WebSocket messages.
+ * It does NOT and CANNOT send messages to the game server.
+ * Any automation that sends commands violates the game's Terms of Service.
+ * 
  * A high-performance, non-blocking library for intercepting and processing
  * WebSocket events in Milky Way Idle. Designed to be used by multiple addons
  * simultaneously without conflicts.
  *
  * IMPORTANT: This is a LIBRARY, not a userscript. Use it via @require:
- * // @require https://raw.githubusercontent.com/mathewcst/mwi-moonitoring/main/mwi-moonitoring-library.js
+ * // @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js
  *
  * @example
  * // In your userscript header:
- * // @require https://raw.githubusercontent.com/mathewcst/mwi-moonitoring/main/mwi-moonitoring-library.js
+ * // @require https://cdn.c3d.gg/mwi-moonitoring-library.min.js
  *
- * // In your script:
+ * // In your script (READ-ONLY operations):
  * MWIWebSocket.on('init_character_data', (eventType, data) => {
  *   console.log('Character loaded:', data.character.name);
+ *   // ✅ OK: Reading and displaying data
+ *   // ❌ NOT OK: Sending commands or automating gameplay
  * });
  *
  * @credits Original WebSocket hook technique by YangLeda

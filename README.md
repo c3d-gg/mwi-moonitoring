@@ -1,6 +1,11 @@
 # MWI Moonitoring 🌙
 
-High-performance WebSocket event library for Milky Way Idle addon development. Zero configuration, maximum performance, no conflicts.
+High-performance **READ-ONLY** WebSocket event library for Milky Way Idle addon development. Zero configuration, maximum performance, no conflicts.
+
+> ⚠️ **IMPORTANT: Game TOS Compliance**  
+> This library is **READ-ONLY** and only monitors WebSocket messages. It does NOT and CANNOT send messages to the game server.  
+> Any automation that sends commands or modifies game state violates the game's Terms of Service.  
+> This library is designed for data collection, monitoring, and alerting purposes only.
 
 ## Features
 
@@ -20,6 +25,21 @@ Add this line to your userscript header:
 
 ```javascript
 // @require https://dns.c3d.gg/mwi-moonitoring-library.min.js
+```
+
+#### With Subresource Integrity (SRI)
+
+For enhanced security, use SRI hashes to ensure the library hasn't been tampered with:
+
+```javascript
+// Minified version with SHA-256 (recommended)
+// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=UNkrwKqNKIGtrWt74QN6ajqwxCMYtO4rfNEP2ZRj/NI=
+
+// Full version with SHA-256
+// @require https://dns.c3d.gg/mwi-moonitoring-library.js#sha256=EkVUApZY1eawnkoSvS1TDFGPNnGrjIMx4aovaAfYdVs=
+
+// Alternative: MD5 hash (wider compatibility)
+// @require https://dns.c3d.gg/mwi-moonitoring-library.min.js#md5=/20IfavMcqcXcWLF0Jd78g==
 ```
 
 Available CDN options:
@@ -266,30 +286,35 @@ console.log('Library ready!');
 
 ## Example Addons
 
-### Auto-Sell Common Items
+### Inventory Overflow Alert
 
 ```javascript
 // ==UserScript==
-// @name         MWI Auto-Sell Common Items
+// @name         MWI Inventory Overflow Alert
 // @match        https://www.milkywayidle.com/*
 // @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
-// @grant        none
+// @grant        GM_notification
 // ==/UserScript==
 
 (function() {
     'use strict';
     
-    const AUTO_SELL = ['/items/milk', '/items/butter', '/items/egg'];
-    const MIN_QUANTITY = 100;
+    const TRACKED_ITEMS = ['/items/milk', '/items/butter', '/items/egg'];
+    const MAX_QUANTITY = 10000;
     
     MWIWebSocket.on('items_updated', (eventType, data) => {
-        const toSell = data.characterItems.filter(item => 
-            AUTO_SELL.includes(item.itemHrid) && item.count > MIN_QUANTITY
+        const overflowing = data.characterItems.filter(item => 
+            TRACKED_ITEMS.includes(item.itemHrid) && item.count > MAX_QUANTITY
         );
         
-        if (toSell.length > 0) {
-            console.log('Items to sell:', toSell);
-            // Implement selling logic here
+        if (overflowing.length > 0) {
+            // READ-ONLY: Alert user that items are overflowing
+            GM_notification({
+                title: 'Inventory Overflow!',
+                text: `${overflowing.length} item types exceeding ${MAX_QUANTITY}`,
+                timeout: 5000
+            });
+            console.log('Overflowing items:', overflowing);
         }
     });
 })();

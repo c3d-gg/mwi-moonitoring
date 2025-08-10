@@ -1,12 +1,12 @@
 // ==UserScript==
-// @name         MWI Event Discovery Tool
+// @name         MWI Event Discovery Tool (READ-ONLY)
 // @namespace    https://github.com/mathewcst/mwi-moonitoring/examples
 // @version      1.0.0
-// @description  Discover and log all WebSocket events in Milky Way Idle
+// @description  READ-ONLY tool to discover and log WebSocket events in Milky Way Idle
 // @author       mathewcst
 // @match        https://www.milkywayidle.com/*
 // @match        https://test.milkywayidle.com/*
-// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js
+// @require      https://dns.c3d.gg/mwi-moonitoring-library.min.js#sha256=UNkrwKqNKIGtrWt74QN6ajqwxCMYtO4rfNEP2ZRj/NI=
 // @grant        GM_addStyle
 // ==/UserScript==
 
