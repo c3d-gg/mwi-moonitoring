@@ -230,10 +230,11 @@ update_readme() {
     sed -i "s/mwi-moonitoring-library-v[0-9]\+\.[0-9]\+\.[0-9]\+/mwi-moonitoring-library-v$new_version/g" "$README_FILE"
     
     # Update SHA-256 hashes in README (find all SHA-256 base64 patterns and replace with current)
-    sed -i "s/#sha256=[A-Za-z0-9+/=]\+/#sha256=$sha256_min_b64/g" "$README_FILE"
+    # Use | as delimiter since base64 contains forward slashes
+    sed -i "s|#sha256=[A-Za-z0-9+/=]\+|#sha256=$sha256_min_b64|g" "$README_FILE"
     
     # Update MD5 hashes in README
-    sed -i "s/#md5=[a-f0-9]\+/#md5=$md5_min/g" "$README_FILE"
+    sed -i "s|#md5=[a-f0-9]\+|#md5=$md5_min|g" "$README_FILE"
     
     print_success "Updated version references and SRI hashes in README"
 }
@@ -258,7 +259,8 @@ update_sri_hashes() {
     sed -i "s/## Current Version (v[0-9]\+\.[0-9]\+\.[0-9]\+)/## Current Version (v$new_version)/" "$SRI_HASHES_FILE"
     
     # Update all SHA-256 hashes for minified file
-    sed -i "s/#sha256=[A-Za-z0-9+/=]\+/#sha256=$sha256_min_b64/g" "$SRI_HASHES_FILE"
+    # Use | as delimiter since base64 contains forward slashes
+    sed -i "s|#sha256=[A-Za-z0-9+/=]\+|#sha256=$sha256_min_b64|g" "$SRI_HASHES_FILE"
     
     # Update the version history table (add new version at top)
     local today=$(date "+%Y-%m-%d")
