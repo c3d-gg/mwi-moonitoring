@@ -571,6 +571,20 @@
       this.queue = []
       this.timer = null
       this.processing = false
+      this.logger = null // Will be set when config is updated
+    }
+
+    updateConfig(newConfig) {
+      const oldInterval = this.config.batchInterval
+      this.config = newConfig
+      this.logger = new Logger(this.config) // Create logger for debug messages
+      
+      // If batchInterval changed and we have a running timer, restart it
+      if (oldInterval !== newConfig.batchInterval && this.timer) {
+        this.logger.debug(`Restarting batch timer: ${oldInterval}ms → ${newConfig.batchInterval}ms`)
+        clearTimeout(this.timer)
+        this.timer = setTimeout(() => this.flush(), this.config.batchInterval)
+      }
     }
 
     add(message) {
@@ -584,6 +598,9 @@
 
       // Start timer if not already running
       if (!this.timer) {
+        if (this.logger) {
+          this.logger.debug(`Starting batch timer with ${this.config.batchInterval}ms interval (queue: ${this.queue.length})`)
+        }
         this.timer = setTimeout(() => this.flush(), this.config.batchInterval)
       }
 
@@ -616,6 +633,9 @@
 
         // Schedule next batch if queue has items
         if (this.queue.length > 0 && !this.timer) {
+          if (this.logger) {
+            this.logger.debug(`Scheduling next batch timer with ${this.config.batchInterval}ms interval (remaining: ${this.queue.length})`)
+          }
           this.timer = setTimeout(() => this.flush(), this.config.batchInterval)
         }
       }
@@ -646,6 +666,7 @@
       this.monitor = new PerformanceMonitor()
       this.discovery = new EventDiscovery(this.config, this.logger)
       this.queue = new MessageQueue(this.config, this.processBatch.bind(this))
+      this.queue.updateConfig(this.config) // Initialize logger
 
       this.isHooked = false
       this.originalGet = null
@@ -855,13 +876,21 @@
     }
 
     configure(options) {
+      const oldConfig = { ...this.config }
       this.config = { ...this.config, ...options }
+      
+      // Create new logger with updated config
       this.logger = new Logger(this.config)
+      
+      // Update components with new config
       this.emitter.config = this.config
       this.discovery.config = this.config
-      this.queue.config = this.config
+      this.queue.updateConfig(this.config)
 
-      this.logger.info('Configuration updated:', options)
+      this.logger.info('Configuration updated:', {
+        ...options,
+        _batchIntervalChanged: oldConfig.batchInterval !== this.config.batchInterval
+      })
     }
 
     getConfig() {
