@@ -6,7 +6,6 @@ on:
       - main
       - master
     paths:
-      - 'mwi-moonitoring.js'
       - 'mwi-moonitoring-library.js'
       - 'mwi-moonitoring.d.ts'
       - '.github/workflows/deploy-to-r2.yml'
@@ -38,11 +37,6 @@ jobs:
           # Create versioned copies
           cp mwi-moonitoring-library.js mwi-moonitoring-library-v${VERSION}.js
           cp mwi-moonitoring.d.ts mwi-moonitoring-v${VERSION}.d.ts
-          
-          # Also copy the original file (with userscript header) if it exists
-          if [ -f "mwi-moonitoring.js" ]; then
-            cp mwi-moonitoring.js mwi-moonitoring-v${VERSION}.js
-          fi
 
       - name: Minify JavaScript files
         run: |
@@ -56,18 +50,6 @@ jobs:
           
           # Create versioned minified copy
           cp mwi-moonitoring-library.min.js mwi-moonitoring-library-v${VERSION}.min.js
-          
-          # Minify the original file if it exists
-          if [ -f "mwi-moonitoring.js" ]; then
-            terser mwi-moonitoring.js \
-              --compress \
-              --mangle \
-              --toplevel \
-              --output mwi-moonitoring.min.js \
-              --comments "/^!|@preserve|@license|@cc_on/i"
-            
-            cp mwi-moonitoring.min.js mwi-moonitoring-v${VERSION}.min.js
-          fi
 
       - name: Generate file manifest
         run: |
@@ -85,14 +67,6 @@ jobs:
                   "minified": "mwi-moonitoring-library-v${VERSION}.min.js"
                 }
               },
-              "userscript": {
-                "full": "mwi-moonitoring.js",
-                "minified": "mwi-moonitoring.min.js",
-                "versioned": {
-                  "full": "mwi-moonitoring-v${VERSION}.js",
-                  "minified": "mwi-moonitoring-v${VERSION}.min.js"
-                }
-              },
               "types": {
                 "latest": "mwi-moonitoring.d.ts",
                 "versioned": "mwi-moonitoring-v${VERSION}.d.ts"
@@ -106,6 +80,21 @@ jobs:
           }
           EOF
 
+      - name: Prepare upload directory
+        run: |
+          mkdir -p upload
+          # Copy only the library files to upload directory
+          cp mwi-moonitoring-library.js upload/
+          cp mwi-moonitoring-library.min.js upload/
+          cp mwi-moonitoring-library-v${VERSION}.js upload/
+          cp mwi-moonitoring-library-v${VERSION}.min.js upload/
+          cp mwi-moonitoring.d.ts upload/
+          cp mwi-moonitoring-v${VERSION}.d.ts upload/
+          cp manifest.json upload/
+          
+          echo "Files to upload:"
+          ls -la upload/
+
       - name: Upload to Cloudflare R2
         uses: ryand56/r2-upload-action@latest
         with:
@@ -113,7 +102,7 @@ jobs:
           r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           r2-bucket: ${{ secrets.R2_BUCKET }}
-          source-dir: ./
+          source-dir: ./upload
           destination-dir: ./
           
       - name: Set cache headers for R2 objects
@@ -149,7 +138,7 @@ jobs:
           done
           
           # Set cache headers for latest files (cache for 1 hour)
-          for file in mwi-moonitoring-library.js mwi-moonitoring-library.min.js mwi-moonitoring.js mwi-moonitoring.min.js mwi-moonitoring.d.ts manifest.json; do
+          for file in mwi-moonitoring-library.js mwi-moonitoring-library.min.js mwi-moonitoring.d.ts manifest.json; do
             if [ -f "$file" ]; then
               aws s3api copy-object \
                 --endpoint-url $ENDPOINT \
@@ -264,8 +253,6 @@ jobs:
               "files": [
                 "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.js",
                 "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring-library.min.js",
-                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.js",
-                "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.min.js",
                 "https://cdn.mwi-moonitoring.c3d.gg/mwi-moonitoring.d.ts",
                 "https://cdn.mwi-moonitoring.c3d.gg/manifest.json"
               ]
