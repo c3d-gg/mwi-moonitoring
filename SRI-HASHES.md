@@ -2,7 +2,7 @@
 
 This document contains the SRI hashes for all versions of the MWI-Moonitoring library. Use these hashes with Tampermonkey's `@require` directive to ensure the library hasn't been tampered with.
 
-## Current Version (v0.1.0)
+## Current Version (v0.1.1)
 
 ### Production (Minified) - Recommended
 ```javascript
@@ -10,10 +10,10 @@ This document contains the SRI hashes for all versions of the MWI-Moonitoring li
 // @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js
 
 // Option 2: Locked to v0.1.0 with SRI hash
-// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=
 
 // Option 3: Versioned URL with SRI hash (most secure)
-// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library-v0.1.0.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library-v0.1.0.min.js#sha256=pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=
 
 // Alternative: MD5 hash (less secure but wider compatibility)
 // @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#md5=4462cd2ba60ffcd6cd58ff19b7c5c815
@@ -25,7 +25,7 @@ This document contains the SRI hashes for all versions of the MWI-Moonitoring li
 // @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js
 
 // Option 2: Locked to v0.1.0 with SRI hash
-// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#sha256=Qh6W7xeY9Qv4eQ8vKSxqIkOQVYXWLbxtZjFvBGx0jLs=
+// @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#sha256=pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=
 
 // Alternative: MD5 hash
 // @require https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.js#md5=c4ceb75a0b6588a9e5230ea5a9a9e3c7
@@ -119,6 +119,12 @@ $hash = Get-FileHash -Algorithm MD5 -Path "file.js"
 
 ## Version History
 
+### v0.1.1 - 2025-08-10
+| File | SHA-256 (Base64) | SHA-256 (Hex) | MD5 (Hex) |
+|------|------------------|---------------|-----------||
+| mwi-moonitoring-library.min.js | `pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=` | `a4c66122da6a4c354a7e96cd8c4c927df69357dec6e555c20e197df1f3fc5a1d` | `b2bda5367525c74a389f3ed7947ec565` |
+| mwi-moonitoring-library.js | `X6fg5oEm16OOwT3RU74N7/PZYnsMxZGqAzwXkpgvzJY=` | `5fa7e0e68126d7a38ec13dd153be0deff3d9627b0cc591aa033c1792982fcc96` | `e94ac5899c8a5555a8f02174b3b68866` |
+
 ### v0.1.0 - 2025-08-10 (Initial Release)
 | File | SHA-256 (Base64) | SHA-256 (Hex) | MD5 (Hex) |
 |------|------------------|---------------|-----------|
@@ -173,7 +179,7 @@ If you get an integrity check failure:
 // @name         My MWI Production Addon
 // @version      1.0.0
 // @match        https://www.milkywayidle.com/*
-// @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=B1qInUUpyIGexRNfoJj/paN/D7KXpXCikNsJYkFlDBA=
+// @require      https://cdn.c3d.gg/moonitoring/mwi-moonitoring-library.min.js#sha256=pMZhItpqTDVKfpbNjEySffaTV97G5VXCDhl98fP8Wh0=
 // @grant        none
 // ==/UserScript==
 
